@@ -3,7 +3,7 @@
 # Enterprise Workflow Engine
 
 **Versão:** 0.1
-**Status:** Em validação
+**Status:** 🟢 APROVADA
 
 ---
 
@@ -522,6 +522,6 @@ docs/PROJECT_GOVERNANCE.md
 
 # 13. Status do Documento
 
-**Status:** Em validação
+**Status:** 🟢 APROVADA
 
 Este documento representa a primeira versão dos requisitos do Enterprise Workflow Engine.
