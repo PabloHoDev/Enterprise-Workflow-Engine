@@ -108,3 +108,19 @@ Preparar o sistema para uma versão estável e próxima de ambiente produtivo.
 Este documento deve ser atualizado conforme novos milestones forem definidos ou concluídos.
 
 Alterações menores de implementação devem ser registradas no histórico apropriado do projeto.
+
+ETAPAS EM MODELO ROADMAP
+
+ETAPA 00 — Visão e Definição do Produto
+
+├── FASE 01 — Product Vision
+│   └── 🟢 Concluída
+│
+├── FASE 02 — Domain Definition
+│   └── 🟢 Concluída
+│
+├── FASE 03 — Requirements
+│   └── 🟢 Concluída
+│
+└── FASE 04 — Use Cases
+    └── 🔲 Próxima
