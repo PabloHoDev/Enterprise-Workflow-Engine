@@ -2,8 +2,8 @@
 
 # Enterprise Workflow Engine
 
-**Versão:** 0.1  
-**Status:** Em definição
+**Versão:** 0.1
+**Status:** Em validação
 
 ---
 
@@ -11,9 +11,9 @@
 
 Este documento define os principais conceitos, termos e relações que compõem o domínio do **Enterprise Workflow Engine**.
 
-O objetivo é estabelecer uma linguagem comum para o projeto antes da definição da arquitetura de software e da implementação.
+Seu objetivo é estabelecer uma linguagem comum para o projeto antes da definição da arquitetura e da implementação.
 
-Os conceitos apresentados neste documento representam o domínio de negócio e não devem ser confundidos diretamente com classes, tabelas ou componentes de infraestrutura.
+Os conceitos apresentados representam o **domínio de negócio** e não devem ser interpretados diretamente como classes Java, tabelas de banco de dados ou componentes de infraestrutura.
 
 ---
 
@@ -21,455 +21,516 @@ Os conceitos apresentados neste documento representam o domínio de negócio e n
 
 Os termos abaixo devem possuir significado consistente em todo o projeto.
 
-| Termo | Definição |
-|---|---|
-| **Workflow** | Processo estruturado composto por etapas e transições |
-| **Workflow Definition** | Modelo que define como um workflow deve ser executado |
-| **Workflow Instance** | Execução concreta de uma Workflow Definition |
-| **Step** | Etapa pertencente a um workflow |
-| **Transition** | Regra que permite a passagem entre etapas ou estados |
-| **State** | Estado atual de uma instância durante sua execução |
-| **Rule** | Regra de negócio utilizada para determinar comportamentos ou transições |
-| **Actor** | Usuário ou sistema responsável por uma ação |
-| **Task** | Atividade que precisa ser executada durante um workflow |
-| **Execution** | Processo de execução de uma etapa ou transição |
-| **History** | Registro das mudanças ocorridas durante a execução |
-| **Audit** | Registro destinado à rastreabilidade das operações relevantes |
+| Termo                   | Definição                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| **Workflow Definition** | Modelo versionado que define como determinado workflow deve ser executado       |
+| **Workflow**            | Execução concreta de uma versão de uma Workflow Definition                      |
+| **Step**                | Unidade de processo definida dentro de uma Workflow Definition                  |
+| **State**               | Estado possível de um workflow e estado atual de uma execução                   |
+| **Transition**          | Movimento permitido entre estados durante a execução                            |
+| **Rule**                | Regra de negócio que influencia o comportamento ou uma transição                |
+| **Actor**               | Usuário, grupo ou sistema responsável por uma ação                              |
+| **Execution**           | Registro conceitual da execução de uma ação ou transição                        |
+| **History**             | Histórico das mudanças ocorridas durante a execução                             |
+| **Audit**               | Registro de operações relevantes para segurança, conformidade e rastreabilidade |
+
+> **Nota:** `Task` não faz parte do modelo inicial. Poderá ser introduzido posteriormente caso o domínio exija uma representação explícita de atividades atribuíveis.
 
 ---
 
-# 3. Workflow
+# 3. Workflow Definition
 
-Um **Workflow** representa um processo de negócio estruturado.
+Uma **Workflow Definition** representa o modelo de um processo de negócio.
 
-Um workflow é composto por:
+Ela define a estrutura necessária para que um workflow possa ser executado, incluindo:
 
-- etapas;
-- estados;
-- transições;
-- regras;
-- responsáveis;
-- condições de execução.
+* identificação;
+* nome;
+* descrição;
+* versão;
+* steps;
+* estados;
+* transições;
+* regras.
+
+Uma Workflow Definition é **versionada**.
+
+Cada versão representa uma definição específica e imutável para fins de execução.
 
 Exemplo:
 
 ```text
-Solicitação
-    ↓
-Aprovação do Gestor
-    ↓
-Validação Financeira
-    ↓
-Execução
-    ↓
-Finalização
+Purchase Approval
+
+Version 1
+Version 2
+Version 3
 ```
 
-O workflow representa a definição do processo, não uma execução específica.
+Uma alteração relevante no processo deve resultar em uma nova versão da definição.
+
+Uma nova versão não deve alterar retroativamente workflows que já estejam sendo executados com uma versão anterior.
 
 ---
 
-# 4. Workflow Definition
+# 4. Workflow
 
-A **Workflow Definition** representa o modelo de um workflow.
-
-Ela define:
-
-- nome;
-- descrição;
-- versão;
-- etapas;
-- transições;
-- regras;
-- configurações necessárias para execução.
-
-Uma definição pode possuir múltiplas versões ao longo do tempo.
-
-Exemplo:
-
-```text
-Purchase Approval Workflow
-    Version 1
-    Version 2
-    Version 3
-```
-
-Uma alteração na definição não deve modificar retroativamente instâncias que já estejam sendo executadas.
-
----
-
-# 5. Workflow Instance
-
-Uma **Workflow Instance** representa uma execução concreta de uma Workflow Definition.
+Um **Workflow** representa uma execução concreta de uma Workflow Definition.
 
 Exemplo:
 
 ```text
 Workflow Definition
-
-"Purchase Approval"
-
-        ↓
-
-Workflow Instance #001
-Solicitação: R$ 5.000
-Solicitante: User A
-Status: Waiting Approval
+"Purchase Approval — Version 2"
 
         ↓
 
-Workflow Instance #002
-Solicitação: R$ 12.000
-Solicitante: User B
-Status: Financial Validation
+Workflow #001
+Purchase Request: 5000
+Current State: PENDING_APPROVAL
+
+        ↓
+
+Workflow #002
+Purchase Request: 12000
+Current State: FINANCIAL_VALIDATION
 ```
 
-Cada instância possui seu próprio:
+Cada Workflow possui:
 
-- identificador;
-- estado;
-- contexto;
-- histórico;
-- responsáveis;
-- timestamps.
+* identificador;
+* referência para uma Workflow Definition;
+* referência para uma versão específica da definição;
+* estado atual;
+* histórico de execução;
+* informações necessárias para sua execução.
 
-Uma mesma definição pode gerar diversas instâncias.
+Uma Workflow Definition pode originar múltiplos Workflows.
 
 ---
 
-# 6. Step
+# 5. Step
 
-Um **Step** representa uma etapa definida dentro de um workflow.
+Um **Step** representa uma unidade de processo dentro de uma Workflow Definition.
 
 Exemplos:
 
-- Solicitação;
-- Aprovação;
-- Validação;
-- Execução;
-- Finalização.
+* Solicitação;
+* Aprovação do Gestor;
+* Validação Financeira;
+* Execução;
+* Finalização.
 
-Uma etapa pode exigir:
+Um Step pode representar uma atividade:
 
-- ação de um usuário;
-- ação de um sistema;
-- avaliação de uma regra;
-- processamento automático.
+* executada por um usuário;
+* executada por um sistema;
+* processada automaticamente;
+* condicionada a uma regra.
 
----
+No modelo inicial, `Step` representa a unidade de processo.
 
-# 7. Task
-
-Uma **Task** representa uma atividade concreta que precisa ser executada dentro de uma etapa.
-
-Exemplo:
-
-```text
-Step:
-Manager Approval
-
-Task:
-Approve Purchase Request #1234
-```
-
-Uma etapa pode gerar uma ou mais tarefas dependendo das regras do workflow.
+O conceito de `Task` não será introduzido enquanto não houver uma necessidade concreta de representar atividades atribuíveis de forma independente.
 
 ---
 
-# 8. State
+# 6. State
 
-O **State** representa a situação atual de uma Workflow Instance.
+O **State** representa uma situação possível dentro do ciclo de vida de um Workflow.
 
 Exemplos:
 
 ```text
 CREATED
-RUNNING
-WAITING
-COMPLETED
+PENDING_APPROVAL
+APPROVED
 REJECTED
+COMPLETED
 CANCELLED
 FAILED
 ```
 
-O conjunto definitivo de estados será definido posteriormente durante a especificação dos requisitos e regras de negócio.
+A Workflow Definition determina os estados e transições possíveis.
 
-Uma instância deve possuir um estado consistente durante toda sua execução.
+O Workflow mantém o seu **estado atual**.
 
----
-
-# 9. Transition
-
-Uma **Transition** representa uma mudança permitida entre estados ou etapas.
-
-Exemplo:
-
-```text
-WAITING_APPROVAL
-        |
-        | approve
-        ↓
-APPROVED
-```
-
-Uma transição pode depender de:
-
-- ação de um ator;
-- regra de negócio;
-- condição;
-- evento;
-- resultado de uma execução.
-
-Transições inválidas devem ser rejeitadas pelo domínio.
-
----
-
-# 10. Rule
-
-Uma **Rule** representa uma condição ou regra de negócio que influencia o comportamento do workflow.
-
-Exemplos:
-
-```text
-Valor > R$ 10.000
-        ↓
-Exigir aprovação financeira
-```
-
-ou:
-
-```text
-Aprovador pertence ao departamento financeiro
-        ↓
-Permitir aprovação
-```
-
-As regras poderão inicialmente ser implementadas de forma estática e posteriormente evoluir para mecanismos configuráveis.
-
----
-
-# 11. Actor
-
-Um **Actor** representa quem executa uma ação dentro do workflow.
-
-Um actor pode representar:
-
-- usuário;
-- grupo;
-- sistema externo;
-- processo automático.
-
-Exemplo:
-
-```text
-Actor: Manager
-Action: APPROVE
-```
-
-A identificação e autorização dos atores serão tratadas posteriormente pela camada de segurança.
-
----
-
-# 12. Execution
-
-Uma **Execution** representa a realização de uma ação dentro de uma Workflow Instance.
-
-Exemplos:
-
-- iniciar workflow;
-- executar tarefa;
-- aprovar etapa;
-- rejeitar solicitação;
-- avançar para próxima etapa;
-- cancelar execução.
-
-A execução deve produzir informações suficientes para permitir rastreabilidade.
-
----
-
-# 13. History
-
-O **History** representa o histórico das alterações ocorridas durante a execução de um workflow.
-
-Exemplo:
-
-```text
-10:00 — Workflow created
-10:02 — Manager assigned
-10:15 — Request approved
-10:16 — Financial validation started
-```
-
-O histórico deve permitir reconstruir a evolução de uma Workflow Instance.
-
----
-
-# 14. Audit
-
-A **Audit** representa registros relacionados a operações relevantes para segurança, conformidade e rastreabilidade.
-
-Exemplos:
-
-- alteração de uma Workflow Definition;
-- criação de uma instância;
-- mudança de responsável;
-- aprovação;
-- rejeição;
-- cancelamento.
-
-A estratégia completa de auditoria será definida posteriormente na arquitetura e nos requisitos de segurança.
-
----
-
-# 15. Relações Conceituais
-
-A relação principal entre os conceitos pode ser representada da seguinte forma:
+Conceitualmente:
 
 ```text
 Workflow Definition
         │
-        ├── Step
+        └── States possíveis
+
+Workflow
         │
-        ├── Transition
-        │
-        └── Rule
-                │
-                ↓
-        Workflow Instance
-                │
-                ├── State
-                │
-                ├── Task
-                │
-                ├── Execution
-                │
-                ├── History
-                │
-                └── Audit
-                        │
-                        ↓
-                      Actor
+        └── currentState
 ```
+
+O conjunto definitivo de estados será refinado durante a definição dos requisitos e regras de negócio.
 
 ---
 
-# 16. Modelo Conceitual Simplificado
+# 7. Transition
 
-O fluxo conceitual do sistema é:
+Uma **Transition** representa uma mudança permitida entre estados.
+
+Exemplo:
 
 ```text
-Definition
-     │
-     ↓
-Workflow
-     │
-     ↓
-Instance
-     │
-     ↓
-State
-     │
-     ↓
-Task / Action
-     │
-     ↓
-Rule Evaluation
-     │
-     ↓
-Transition
-     │
-     ↓
-Next State
+PENDING_APPROVAL
+        │
+        │ approve
+        ↓
+APPROVED
 ```
 
-Cada mudança relevante deve produzir informações suficientes para manter a rastreabilidade da execução.
+Uma Transition pode depender de:
+
+* ação de um Actor;
+* Rule;
+* condição de negócio;
+* evento;
+* resultado de uma execução.
+
+Uma transição inválida deve ser rejeitada pelo domínio.
 
 ---
 
-# 17. Invariantes do Domínio
+# 8. Rule
 
-Algumas regras fundamentais deverão ser preservadas pelo domínio.
+Uma **Rule** representa uma regra de negócio que influencia o comportamento do Workflow.
 
-## 17.1 Estado válido
+Exemplo:
 
-Uma Workflow Instance não pode assumir um estado inexistente ou inválido.
+```text
+Purchase Amount > 10,000
+        ↓
+Financial Approval Required
+```
 
----
+Outro exemplo:
 
-## 17.2 Transição válida
+```text
+Actor belongs to Finance
+        ↓
+Approval permitted
+```
 
-Uma instância somente pode realizar transições permitidas pela definição do workflow.
+As regras poderão inicialmente ser implementadas de forma determinística no domínio.
 
----
-
-## 17.3 Integridade da execução
-
-Uma transição não deve ocorrer sem que as condições necessárias tenham sido satisfeitas.
-
----
-
-## 17.4 Histórico
-
-Mudanças relevantes de estado devem ser rastreáveis.
+Mecanismos mais dinâmicos e configuráveis poderão ser considerados posteriormente.
 
 ---
 
-## 17.5 Versionamento
+# 9. Actor
 
-Alterações em uma Workflow Definition não devem alterar retroativamente uma instância já criada com uma versão anterior.
+Um **Actor** representa o responsável por uma ação dentro do Workflow.
+
+Um Actor pode representar:
+
+* usuário;
+* grupo;
+* sistema externo;
+* processo automático.
+
+Exemplo:
+
+```text
+Actor: manager-123
+Action: APPROVE
+```
+
+A identificação e autorização técnica dos Actors serão tratadas posteriormente pela arquitetura de segurança.
 
 ---
 
-# 18. Limites do Domínio
+# 10. Execution
+
+Uma **Execution** representa conceitualmente a realização de uma ação ou transição durante a execução de um Workflow.
+
+Exemplos:
+
+* iniciar Workflow;
+* executar Step;
+* aprovar;
+* rejeitar;
+* avançar para outro State;
+* cancelar Workflow.
+
+Uma Execution deve fornecer informações suficientes para permitir a rastreabilidade da execução.
+
+A representação técnica desse conceito será definida posteriormente durante a modelagem arquitetural.
+
+---
+
+# 11. History
+
+O **History** representa a sequência de mudanças ocorridas durante a execução de um Workflow.
+
+Exemplo:
+
+```text
+10:00 — CREATED
+10:02 — PENDING_APPROVAL
+10:15 — APPROVED
+10:16 — FINANCIAL_VALIDATION
+11:00 — COMPLETED
+```
+
+O History deve permitir compreender a evolução de um Workflow ao longo de sua execução.
+
+Sua finalidade principal é responder:
+
+> "O que aconteceu com este Workflow?"
+
+---
+
+# 12. Audit
+
+O **Audit** representa registros destinados à rastreabilidade, segurança e conformidade.
+
+Exemplo:
+
+```text
+Actor: manager-123
+Action: APPROVE
+Resource: workflow-456
+Timestamp: ...
+```
+
+A auditoria pode registrar operações como:
+
+* alteração de Workflow Definition;
+* criação de Workflow;
+* aprovação;
+* rejeição;
+* cancelamento;
+* alteração de responsável.
+
+Sua finalidade principal é responder:
+
+> "Quem realizou determinada operação, quando e sobre qual recurso?"
+
+`History` e `Audit` possuem responsabilidades diferentes e não devem ser tratados como o mesmo conceito.
+
+---
+
+# 13. Versionamento
+
+O versionamento das Workflow Definitions é uma característica fundamental do domínio.
+
+Cada Workflow deve estar associado a uma versão específica da Workflow Definition.
+
+Exemplo:
+
+```text
+Workflow Definition
+Purchase Approval
+
+Version 1
+    │
+    ├── Workflow #001
+    └── Workflow #002
+
+Version 2
+    │
+    ├── Workflow #003
+    └── Workflow #004
+```
+
+Uma alteração na definição não deve modificar o comportamento de Workflows já criados.
+
+Isso garante:
+
+* previsibilidade;
+* consistência;
+* rastreabilidade;
+* integridade das execuções;
+* possibilidade de evolução dos processos.
+
+---
+
+# 14. Relações Conceituais
+
+A relação principal entre os conceitos pode ser representada da seguinte forma:
+
+```text
+                 Workflow Definition
+                         │
+              ┌──────────┼──────────┐
+              │          │          │
+              ↓          ↓          ↓
+            Step       State     Transition
+              │          │          │
+              └──────────┼──────────┘
+                         │
+                    Version
+                         │
+                         ↓
+                      Workflow
+                         │
+               ┌─────────┼─────────┐
+               │         │         │
+               ↓         ↓         ↓
+             State    Execution   History
+                                    │
+                                    ↓
+                                  Audit
+                                    │
+                                    ↓
+                                  Actor
+```
+
+---
+
+# 15. Fluxo Conceitual de Execução
+
+O ciclo conceitual de um Workflow é:
+
+```text
+Workflow Definition
+        ↓
+Seleção da versão
+        ↓
+Criação do Workflow
+        ↓
+Estado inicial
+        ↓
+Execução do Step
+        ↓
+Avaliação das Rules
+        ↓
+Validação da Transition
+        ↓
+Mudança de State
+        ↓
+Registro no History
+        ↓
+Próximo Step / State
+```
+
+Esse ciclo continua até que o Workflow alcance um estado terminal.
+
+---
+
+# 16. Invariantes do Domínio
+
+As seguintes regras fundamentais deverão ser preservadas pelo domínio.
+
+## 16.1 Workflow Definition válida
+
+Um Workflow somente pode ser criado a partir de uma Workflow Definition válida e versionada.
+
+---
+
+## 16.2 Versão imutável durante execução
+
+Um Workflow não pode trocar arbitrariamente a versão da Workflow Definition durante sua execução.
+
+---
+
+## 16.3 Estado válido
+
+Um Workflow não pode assumir um State inexistente na sua definição.
+
+---
+
+## 16.4 Transition válida
+
+Um Workflow somente pode realizar Transitions permitidas pela sua Workflow Definition.
+
+---
+
+## 16.5 Regras satisfeitas
+
+Uma Transition somente pode ocorrer quando suas condições e Rules forem satisfeitas.
+
+---
+
+## 16.6 Histórico rastreável
+
+Mudanças relevantes de State devem ser registradas no History.
+
+---
+
+# 17. Limites do Domínio
 
 O domínio será responsável por:
 
-- regras de workflow;
-- estados;
-- transições;
-- execução;
-- invariantes;
-- regras de negócio.
+* regras de Workflow;
+* States;
+* Transitions;
+* Rules;
+* invariantes;
+* execução das regras de negócio.
 
 O domínio não será responsável diretamente por:
 
-- banco de dados;
-- HTTP;
-- autenticação técnica;
-- mensageria;
-- Docker;
-- frameworks;
-- detalhes de infraestrutura.
+* HTTP;
+* banco de dados;
+* Docker;
+* frameworks;
+* mensageria;
+* autenticação técnica;
+* detalhes de infraestrutura.
 
 Essas responsabilidades serão definidas posteriormente na arquitetura.
 
 ---
 
-# 19. Evolução do Domínio
+# 18. Conceitos Fora do Modelo Inicial
 
-Os conceitos definidos neste documento representam a primeira versão do modelo de domínio.
+O conceito abaixo foi deliberadamente deixado fora do modelo inicial:
 
-Novos conceitos poderão surgir conforme:
+### Task
 
-- requisitos forem detalhados;
-- casos de uso forem definidos;
-- regras de negócio forem identificadas;
-- decisões arquiteturais forem tomadas.
+Uma Task poderá ser introduzida futuramente caso seja necessário representar uma atividade atribuível independentemente de um Step.
 
-Alterações relevantes no modelo conceitual devem ser avaliadas antes de serem incorporadas ao projeto.
+A introdução desse conceito deverá ocorrer somente quando existir uma necessidade de negócio ou arquitetural clara.
 
 ---
 
-# 20. Status do Documento
+# 19. Evolução do Domínio
 
-Este documento representa a definição inicial do domínio do Enterprise Workflow Engine.
+Este documento representa a primeira versão do modelo conceitual do Enterprise Workflow Engine.
 
-**Status atual:** Em validação.
+O domínio poderá evoluir conforme:
 
-Próximas referências:
+* requisitos forem detalhados;
+* casos de uso forem definidos;
+* regras de negócio forem identificadas;
+* novos cenários forem descobertos.
+
+Alterações relevantes no modelo de domínio deverão ser avaliadas antes de serem incorporadas ao projeto.
+
+Quando uma alteração representar uma decisão arquitetural ou de domínio significativa, deverá ser considerada para registro através de ADR.
+
+---
+
+# 20. Relação com os Próximos Documentos
+
+Este documento servirá como base para:
 
 ```text
 docs/product/REQUIREMENTS.md
 docs/product/USE_CASES.md
 docs/product/BUSINESS_RULES.md
 ```
+
+Posteriormente, os conceitos de domínio serão utilizados como entrada para:
+
+```text
+docs/architecture/ARCHITECTURE.md
+docs/architecture/MODULES.md
+docs/architecture/DATA_MODEL.md
+```
+
+A implementação em Java será definida somente após essas decisões serem amadurecidas.
+
+---
+
+# 21. Status do Documento
+
+**Status:** Em validação
+
+Este documento representa a definição inicial e deliberadamente evolutiva do domínio do Enterprise Workflow Engine.
