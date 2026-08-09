@@ -36,7 +36,7 @@ Entregas principais:
 
 ## Milestone 1 — Product Definition
 
-🟡 Em andamento
+**Status:** 🟢 Concluído
 
 Concluído:
 
@@ -44,7 +44,7 @@ Concluído:
 
 Próximo:
 
-🔲 DOMAIN.md
+🟢 DOMAIN.md
 
 Objetivo:
 
