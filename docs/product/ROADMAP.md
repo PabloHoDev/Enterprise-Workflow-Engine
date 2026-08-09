@@ -111,7 +111,9 @@ Alterações menores de implementação devem ser registradas no histórico apro
 
 ETAPAS EM MODELO ROADMAP
 
-ETAPA 00 — Visão e Definição do Produto
+# Enterprise Workflow Engine — Roadmap
+
+## ETAPA 00 — Visão e Definição do Produto
 
 ├── FASE 01 — Product Vision
 │   └── 🟢 Concluída
@@ -122,5 +124,11 @@ ETAPA 00 — Visão e Definição do Produto
 ├── FASE 03 — Requirements
 │   └── 🟢 Concluída
 │
-└── FASE 04 — Use Cases
-    └── 🟢 Concluída
+├── FASE 04 — Use Cases
+│   └── 🟢 Concluída
+│
+├── FASE 05 — Business Rules
+│   └── 🟢 Concluída
+│
+└── FASE 06 — Architecture Definition
+    └── 🔲 Próxima
