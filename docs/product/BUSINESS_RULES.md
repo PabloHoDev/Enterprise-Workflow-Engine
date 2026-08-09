@@ -3,7 +3,7 @@
 # Enterprise Workflow Engine
 
 **Versão:** 0.1
-**Status:** Em validação
+**Status:** 🟢 APROVADA
 
 ---
 
@@ -409,6 +409,6 @@ As regras aqui definidas servem como referência para futuras decisões de arqui
 
 # 18. Status do Documento
 
-**Status:** Em validação
+**Status:** 🟢 APROVADA
 
 Este documento representa a primeira versão das regras de negócio do Enterprise Workflow Engine.
