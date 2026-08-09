@@ -123,4 +123,4 @@ ETAPA 00 — Visão e Definição do Produto
 │   └── 🟢 Concluída
 │
 └── FASE 04 — Use Cases
-    └── 🔲 Próxima
+    └── 🟢 Concluída
