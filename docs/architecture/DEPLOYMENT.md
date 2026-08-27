@@ -196,6 +196,8 @@ ambientes de desenvolvimento utilizem dados de produção;
 credenciais sejam compartilhadas indevidamente;
 alterações locais afetem outros ambientes;
 configurações específicas sejam acopladas ao código.
+
+
 9. Database Deployment
 
 O PostgreSQL será tratado como um componente independente da aplicação.
@@ -221,6 +223,8 @@ Application Startup / Deployment
               │
               ▼
       Application Execution
+
+
 10. Application Instances
 
 A arquitetura inicial deverá permitir a execução de múltiplas instâncias da
@@ -501,8 +505,7 @@ Quando aplicável:
 
 23. Status
 
-Status: Em validação
-
+Status: Aprovado
 Este documento representa a estratégia inicial de deployment do
 Enterprise Workflow Engine.
 
