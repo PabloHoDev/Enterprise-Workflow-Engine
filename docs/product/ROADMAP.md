@@ -64,7 +64,7 @@ Definir a base arquitetural e técnica do sistema.
 
 ## Milestone 3 — Workflow Engine Core
 
-**Status:** ⚪ Planejado
+**Status:** 🟢 Concluído
 
 Objetivo:
 
@@ -74,7 +74,7 @@ Construir o núcleo principal do motor de workflow.
 
 ## Milestone 4 — Enterprise Features
 
-**Status:** ⚪ Planejado
+**Status:** 🟢 Concluído
 
 Objetivo:
 
@@ -84,8 +84,7 @@ Adicionar capacidades avançadas para aproximar o sistema de um cenário corpora
 
 ## Milestone 5 — Production Ready
 
-**Status:** ⚪ Planejado
-
+**Status:** ⚪ 🟢 Concluído
 Objetivo:
 
 Preparar o sistema para uma versão estável e próxima de ambiente produtivo.
@@ -113,7 +112,7 @@ ETAPAS EM MODELO ROADMAP
 
 # Enterprise Workflow Engine — Roadmap
 
-## ETAPA 00 — Visão e Definição do Produto
+ETAPA 00 — Visão e Definição do Produto
 
 ├── FASE 01 — Product Vision
 │   └── 🟢 Concluída
@@ -131,4 +130,4 @@ ETAPAS EM MODELO ROADMAP
 │   └── 🟢 Concluída
 │
 └── FASE 06 — Architecture Definition
-    └── 🔲 Próxima
+    └── 🟢 Concluída
