@@ -166,6 +166,8 @@ URLs de serviços externos;
 configurações de observabilidade;
 níveis de logging;
 parâmetros de segurança.
+
+
 7. Sensitive Configuration
 
 Informações sensíveis não devem ser armazenadas diretamente no código-fonte.
