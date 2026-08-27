@@ -129,5 +129,23 @@ ETAPA 00 — Visão e Definição do Produto
 ├── FASE 05 — Business Rules
 │   └── 🟢 Concluída
 │
-└── FASE 06 — Architecture Definition
-    └── 🟢 Concluída
+├── FASE 06 — Architecture Definition
+│   └── 🟢 Concluída
+│
+└── FASE 07 — Technical Foundation
+    └── 🔲 Próxima
+O que vamos definir na FASE 07: 
+│
+├── Stack tecnológica
+├── Java / Spring Boot
+├── Maven
+├── Estrutura inicial do projeto
+├── Package structure
+├── Configuração base
+├── Profiles / environments
+├── Dependências
+├── Banco de dados
+├── Migration strategy
+├── Test foundation
+├── Docker foundation
+└── Quality foundation
