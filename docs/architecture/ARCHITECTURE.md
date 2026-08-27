@@ -3,7 +3,7 @@
 # Enterprise Workflow Engine
 
 **Versão:** 0.1
-**Status:** Em validação
+**Status:** Aprovado
 
 ---
 
@@ -648,7 +648,7 @@ docs/
 
 # 29. Status
 
-**Status:** Em validação
+**Status:** Aprovado
 
 Esta é a arquitetura inicial do Enterprise Workflow Engine.
 
