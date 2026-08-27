@@ -3,7 +3,7 @@
 # Enterprise Workflow Engine
 
 **Versão:** 0.1
-**Status:** Em validação
+**Status:** Aprovado
 
 ---
 
@@ -607,7 +607,7 @@ Quando aplicável:
 
 # 18. Status
 
-**Status:** Em validação
+**Status:** Aprovado
 
 Esta é a estrutura modular inicial do Enterprise Workflow Engine.
 
