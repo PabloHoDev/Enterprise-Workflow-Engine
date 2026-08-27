@@ -73,3 +73,17 @@ Define como o processo funciona
 Workflow Execution
         ↓
 Representa uma execução concreta do processo
+
+
+Relação com Outros Documentos
+
+Este documento complementa:
+
+docs/product/DOMAIN.md
+docs/product/REQUIREMENTS.md
+docs/product/USE_CASES.md
+docs/product/BUSINESS_RULES.md
+
+docs/architecture/ARCHITECTURE.md
+docs/architecture/MODULES.md
+docs/architecture/DEPLOYMENT.md
