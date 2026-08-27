@@ -3,7 +3,7 @@
 # Enterprise Workflow Engine
 
 **Versão:** 0.1  
-**Status:** Em validação
+**Status:** Aprovado
 
 ---
 
