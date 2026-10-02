@@ -3,7 +3,7 @@
 # Enterprise Workflow Engine
 
 **Versão:** 0.1
-**Status:** Em validação
+**Status:** 🟢 APROVADA
 
 ---
 
@@ -531,6 +531,9 @@ A implementação em Java será definida somente após essas decisões serem ama
 
 # 21. Status do Documento
 
-**Status:** Em validação
+**Status:** 🟢 APROVADA
 
 Este documento representa a definição inicial e deliberadamente evolutiva do domínio do Enterprise Workflow Engine.
+
+As escolhas feitas ao traduzir este modelo conceitual em código — como a representação de `Step` e de
+`Execution` — estão registradas em `docs/adr/ADR-006.md`.
