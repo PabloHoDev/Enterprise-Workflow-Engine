@@ -383,7 +383,14 @@ Workflow Execution
         └──────────────► Rules
 ```
 
-O Audit poderá receber informações sobre operações relevantes realizadas por outros módulos através de mecanismos apropriados.
+O módulo Workflow Definition utiliza também o contrato do módulo Rules, apenas como vocabulário para
+declarar as Rules associadas às Transitions:
+
+```text
+Workflow Definition ───────────► Rules Contract
+```
+
+O Audit recebe informações sobre operações relevantes realizadas pelos outros módulos através do seu contrato público.
 
 Conceitualmente:
 
@@ -395,7 +402,9 @@ Workflow Execution ─────┼────► Audit
 Rules ──────────────────┘
 ```
 
-A estratégia concreta de comunicação com o módulo Audit será definida posteriormente.
+A comunicação com o Audit é uma chamada direta ao contrato `AuditRecorder`, dentro da transação do caso
+de uso: o registro de sucesso só existe se a operação for efetivada. Operações recusadas são registradas
+em transação própria (`docs/adr/ADR-004.md`).
 
 ---
 
@@ -611,4 +620,9 @@ Quando aplicável:
 
 Esta é a estrutura modular inicial do Enterprise Workflow Engine.
 
-A implementação concreta dos módulos será definida posteriormente durante a estruturação do projeto.
+A tradução dos módulos em pacotes Java, o contrato público de cada módulo e a verificação automática
+dos limites estão descritos em:
+
+```text
+docs/adr/ADR-002.md
+```
