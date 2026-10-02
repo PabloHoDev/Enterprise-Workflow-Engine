@@ -1,0 +1,27 @@
+# Desenvolvimento individual. Aponta para o PostgreSQL do docker-compose.yml.
+# As credenciais abaixo existem apenas para uso local e nunca devem ser usadas em outro ambiente.
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/workflow_engine}
+    username: ${DB_USERNAME:workflow}
+    password: ${DB_PASSWORD:workflow}
+
+workflow-engine:
+  security:
+    users:
+      - username: admin
+        password: "{noop}admin"
+        roles: [ADMIN]
+      - username: manager
+        password: "{noop}manager"
+        roles: [USER, MANAGER]
+      - username: finance
+        password: "{noop}finance"
+        roles: [USER, FINANCE]
+      - username: user
+        password: "{noop}user"
+        roles: [USER]
+
+logging:
+  level:
+    com.pablohenrique.workflowengine: DEBUG
