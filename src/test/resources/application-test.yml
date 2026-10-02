@@ -1,0 +1,16 @@
+# Usuários dos testes de integração. O datasource é registrado por TestDatabase.
+workflow-engine:
+  security:
+    users:
+      - username: admin
+        password: "{noop}admin-secret"
+        roles: [ADMIN]
+      - username: manager
+        password: "{noop}manager-secret"
+        roles: [USER, MANAGER]
+      - username: finance
+        password: "{noop}finance-secret"
+        roles: [USER, FINANCE]
+      - username: user
+        password: "{noop}user-secret"
+        roles: [USER]
