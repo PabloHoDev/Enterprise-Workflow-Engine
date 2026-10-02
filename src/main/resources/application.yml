@@ -19,6 +19,10 @@ spring:
     web:
       pageable:
         max-page-size: 100
+  web:
+    # Mensagens da API em um único idioma, independentemente do locale do servidor ou do cliente.
+    locale: en
+    locale-resolver: fixed
   threads:
     virtual:
       enabled: true
