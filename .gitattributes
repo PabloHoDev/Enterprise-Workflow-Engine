@@ -1,2 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Scripts precisam do fim de linha do sistema que os executa, independentemente de onde foi feito o checkout.
+mvnw text eol=lf
+*.sh text eol=lf
+*.cmd text eol=crlf
