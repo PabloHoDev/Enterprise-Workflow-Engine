@@ -1,0 +1,13 @@
+# Produção. Banco e usuários vêm exclusivamente do ambiente:
+#   DB_URL, DB_USERNAME, DB_PASSWORD
+#   WORKFLOW_ENGINE_SECURITY_USERS_0_USERNAME, ..._0_PASSWORD ({bcrypt}...), ..._0_ROLES
+logging:
+  structured:
+    format:
+      console: ecs
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
