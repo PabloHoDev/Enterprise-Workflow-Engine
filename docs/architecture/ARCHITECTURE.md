@@ -608,6 +608,15 @@ A decisão arquitetural principal está registrada em:
 docs/adr/ADR-001.md
 ```
 
+A tradução desta arquitetura em estrutura de pacotes, e a verificação automática das restrições AC-001 a
+AC-005 por testes de arquitetura, estão em:
+
+```text
+docs/adr/ADR-002.md
+```
+
+O conjunto das decisões em vigor está resumido em `docs/architecture/DECISIONS.md`.
+
 Novas decisões arquiteturais relevantes deverão ser avaliadas conforme:
 
 ```text
@@ -637,11 +646,15 @@ docs/
 ├── architecture/
 │   ├── ARCHITECTURE.md
 │   ├── MODULES.md
+│   ├── DATA_MODEL.md
+│   ├── API_DESIGN.md
+│   ├── SECURITY.md
 │   ├── DEPLOYMENT.md
-│   └── DATA_MODEL.md
+│   └── DECISIONS.md
 │
 └── adr/
-    └── ADR-001.md
+    ├── README.md
+    └── ADR-000.md ... ADR-006.md
 ```
 
 ---
