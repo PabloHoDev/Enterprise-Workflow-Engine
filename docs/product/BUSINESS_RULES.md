@@ -337,7 +337,50 @@ A entrada em um State terminal deve ser registrada no History.
 
 ---
 
-# 14. Invariantes do Domínio
+# 14. Regras Adicionadas na Implementação
+
+Regras identificadas ao implementar o domínio, conforme a seção de evolução deste documento. A
+justificativa de cada uma está em `docs/adr/ADR-006.md`.
+
+## BR-041 — Versão ativa única
+
+Uma Workflow Definition possui no máximo uma versão ativa. Ativar uma versão retira a versão
+anteriormente ativa de novas execuções, sem afetar Workflows em andamento.
+
+---
+
+## BR-042 — Cancelamento preserva o State
+
+O cancelamento é permitido enquanto o Workflow não estiver encerrado. O Workflow cancelado mantém o State
+em que a execução foi interrompida.
+
+---
+
+## BR-043 — Ação única por State de origem
+
+Em uma mesma versão, não podem existir duas Transitions com a mesma ação partindo do mesmo State.
+
+---
+
+## BR-044 — Estrutura executável
+
+Uma versão somente é aceita quando sua estrutura é executável:
+
+* possui exatamente um State inicial;
+* possui ao menos um State terminal;
+* todo State é alcançável a partir do State inicial;
+* todo State não terminal possui ao menos uma Transition de saída;
+* nenhuma Transition parte de um State terminal.
+
+---
+
+## BR-045 — Variável ausente
+
+Uma Rule avaliada sobre uma variável inexistente não é satisfeita.
+
+---
+
+# 15. Invariantes do Domínio
 
 As seguintes condições devem permanecer verdadeiras durante toda a vida de um Workflow:
 
@@ -355,7 +398,7 @@ As seguintes condições devem permanecer verdadeiras durante toda a vida de um 
 
 ---
 
-# 15. Evolução das Regras
+# 16. Evolução das Regras
 
 As regras definidas neste documento representam a primeira versão do modelo de negócio.
 
@@ -377,7 +420,7 @@ Uma nova regra deve:
 
 ---
 
-# 16. Decisões que Podem Exigir ADR
+# 17. Decisões que Podem Exigir ADR
 
 Nem toda regra de negócio exige um ADR.
 
@@ -391,7 +434,7 @@ A decisão deve então ser registrada antes de sua implementação quando houver
 
 ---
 
-# 17. Relação com Outros Documentos
+# 18. Relação com Outros Documentos
 
 Este documento deve permanecer consistente com:
 
@@ -407,7 +450,7 @@ As regras aqui definidas servem como referência para futuras decisões de arqui
 
 ---
 
-# 18. Status do Documento
+# 19. Status do Documento
 
 **Status:** 🟢 APROVADA
 
