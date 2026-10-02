@@ -1,3 +1,42 @@
+# Configuração comum a todos os ambientes. Valores específicos de ambiente e segredos
+# chegam por variáveis de ambiente (docs/architecture/DEPLOYMENT.md, DP-002 e DP-003).
 spring:
   application:
     name: enterprise-workflow-engine
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  data:
+    web:
+      pageable:
+        max-page-size: 100
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+
+logging:
+  pattern:
+    level: "%5p [%X{requestId:-}]"
