@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---- Console web: build estático da SPA ----
-FROM node:24-alpine AS console
+FROM node:26-alpine AS console
 WORKDIR /console
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund
