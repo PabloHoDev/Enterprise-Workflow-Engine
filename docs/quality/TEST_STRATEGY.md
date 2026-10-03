@@ -2,7 +2,7 @@
 
 # Enterprise Workflow Engine
 
-**Versão:** 0.1
+**Versão:** 0.2
 **Status:** Aprovado
 
 ---
@@ -33,12 +33,14 @@ de teste existem e o que cada um deve provar.
 | Unitário     | regras e invariantes do domínio                                     | JUnit + AssertJ, sem Spring          | `*/domain/*Test`                              |
 | Arquitetura  | limites entre módulos e camadas                                     | ArchUnit                             | `architecture/ArchitectureTest`               |
 | Integração   | casos de uso de ponta a ponta: HTTP, segurança, transação, banco    | Spring Boot + MockMvc + PostgreSQL   | `*IntegrationTest`, `WorkflowEngineApplicationTests` |
+| Console      | cliente da API (CSRF, erros), formatação, telas                     | Vitest + Testing Library (jsdom)     | `frontend/src/**/*.test.ts(x)`                |
+| End-to-end   | jornadas reais no navegador, acessibilidade, responsividade         | Playwright + axe contra a aplicação  | `frontend/e2e/`                               |
 
 Não há, por ora, testes de application services com mocks: os services apenas orquestram domínio e
 portas, e esse caminho é exercitado pelos testes de integração. Testes com dublês devem ser adicionados
 quando um service ganhar lógica própria que seja cara de alcançar pela API.
 
-Testes end-to-end contra a aplicação implantada e testes de carga estão no backlog (TB-008).
+Testes de carga estão no backlog (TB-008).
 
 ---
 
@@ -54,29 +56,51 @@ Testes end-to-end contra a aplicação implantada e testes de carga estão no ba
 | `WorkflowApiIntegrationTest`          | UC-006 a UC-012, versionamento em execução, auditoria de sucesso e de recusa                    |
 | `WorkflowConcurrencyIntegrationTest`  | RNF-001: uma operação baseada em leitura desatualizada falha em vez de sobrescrever             |
 | `WorkflowEngineApplicationTests`      | inicialização, health checks, autenticação, correlação, OpenAPI                                 |
+| `UserAccountTest`, `PasswordPolicyTest`, `LoginThrottleTest` | contas, bloqueio por tentativas, política de senha, limite por origem (BR-046 a BR-049) |
+| `AuthenticationIntegrationTest`       | login por sessão, CSRF, logout, falhas genéricas, bloqueio, limite por IP, troca de senha, cabeçalhos, limite de tamanho, auditoria de acesso negado |
+| `UserManagementIntegrationTest`       | gestão de contas, revogação imediata de sessões, proteção do último administrador |
+| `WebConsoleIntegrationTest`           | entrega da SPA e cache dos arquivos, resumo por status                                          |
+| `RequestSizeLimitFilterTest`          | corpo declarado e não declarado acima do limite                                                 |
+| `frontend/e2e/console.spec.ts`        | jornada completa com 4 perfis (modelar, ativar, solicitar, regra recusando, aprovar, auditar), áreas restritas, celular de 360 px em tema escuro, axe WCAG 2 AA em 6 telas |
 
 ---
 
 # 5. Banco de Dados nos Testes de Integração
 
-Os testes de integração precisam de um PostgreSQL. Há duas formas de fornecê-lo:
+Os testes de integração precisam de um PostgreSQL, iniciado uma vez e compartilhado por toda a suíte
+(`support/TestDatabase`). A origem é escolhida nesta ordem:
 
-**Testcontainers (padrão).** Com Docker disponível, um container `postgres:18-alpine` é iniciado uma vez e
-compartilhado por toda a suíte.
+1. **Banco externo**, se `EWE_TEST_DB_URL` estiver definida (com `EWE_TEST_DB_USERNAME` e
+   `EWE_TEST_DB_PASSWORD`). O banco deve ser descartável.
+2. **Testcontainers**, se houver Docker: um container `postgres:18-alpine`. É o caminho do CI.
+3. **PostgreSQL embutido** (`io.zonky.test:embedded-postgres`, binários 18.x), sem Docker, ou quando
+   `EWE_TEST_DB=embedded` está definida. É um processo nativo iniciado pela JVM, com UTF-8 e locale `C`.
 
-**Banco externo.** Sem Docker, aponte para um PostgreSQL existente e descartável:
-
-```bash
-export EWE_TEST_DB_URL=jdbc:postgresql://localhost:5432/workflow_engine_test
-export EWE_TEST_DB_USERNAME=...
-export EWE_TEST_DB_PASSWORD=...
-./mvnw verify
-```
-
-**Sem nenhum dos dois**, os testes de integração são **ignorados** (não falham) e o build executa apenas os
-testes unitários e de arquitetura. O Maven informa a quantidade de testes ignorados.
+Os testes de integração nunca são ignorados por falta de banco: `./mvnw verify` executa a suíte completa
+em qualquer máquina com JDK.
 
 As migrations Flyway rodam no banco de teste; os testes não limpam dados.
+
+---
+
+# 5A. Console Web
+
+```bash
+cd frontend
+npm run lint && npm run typecheck && npm test      # estáticos e unitários
+npm run build                                      # build de produção em dist/
+```
+
+Os testes end-to-end rodam contra a aplicação completa servindo o build do console, com o perfil `local`
+e suas contas de demonstração:
+
+```bash
+./mvnw -DskipTests package
+java -jar target/*.jar --spring.profiles.active=local --workflow-engine.web.console-location=file:frontend/dist/
+cd frontend && npx playwright install chromium && npm run e2e
+```
+
+Cada execução cria uma definição com chave única; os dados permanecem no banco local.
 
 ---
 
