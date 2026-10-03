@@ -82,10 +82,13 @@ A aplicação é empacotada com Docker, pelo `Dockerfile` na raiz do repositóri
 Source Code
     │
     ▼
-Build Stage        eclipse-temurin:25-jdk — compila e extrai o jar em camadas
+Console Stage      node:24-alpine — build estático do console web (ADR-008)
     │
     ▼
-Runtime Image      eclipse-temurin:25-jre — apenas JRE e aplicação
+Build Stage        eclipse-temurin:25-jdk — inclui o console em /static, compila e extrai o jar em camadas
+    │
+    ▼
+Runtime Image      eclipse-temurin:25-jre — apenas JRE e aplicação (API + console)
 ```
 
 Características da imagem:
@@ -126,7 +129,7 @@ O mesmo artefato roda em qualquer ambiente; o que muda é a configuração, sele
 | Perfil  | Uso                         | Banco                               | Usuários                        |
 | ------- | --------------------------- | ----------------------------------- | ------------------------------- |
 | `local` | desenvolvimento individual  | padrão `localhost:5432` (Compose)   | fixos, apenas para uso local    |
-| `test`  | testes automatizados        | Testcontainers ou banco externo     | fixos, apenas para testes       |
+| `test`  | testes automatizados        | Testcontainers, embutido ou externo | fixos, apenas para testes       |
 | `prod`  | execução real               | exclusivamente por variáveis        | exclusivamente por variáveis    |
 
 Variáveis de ambiente:
@@ -136,9 +139,11 @@ Variáveis de ambiente:
 | `SPRING_PROFILES_ACTIVE`                           | perfil ativo                                |
 | `DB_URL`                                           | URL JDBC do PostgreSQL                      |
 | `DB_USERNAME` / `DB_PASSWORD`                      | credenciais do banco                        |
-| `WORKFLOW_ENGINE_SECURITY_USERS_<n>_USERNAME`      | usuário da API                              |
-| `WORKFLOW_ENGINE_SECURITY_USERS_<n>_PASSWORD`      | senha (`{bcrypt}...`)                       |
-| `WORKFLOW_ENGINE_SECURITY_USERS_<n>_ROLES`         | papéis separados por vírgula                |
+| `WORKFLOW_ENGINE_IDENTITY_SEED_USERS_<n>_USERNAME` | conta criada na inicialização, se não existir (ex.: o primeiro administrador) |
+| `WORKFLOW_ENGINE_IDENTITY_SEED_USERS_<n>_PASSWORD` | senha em texto (cifrada ao criar) ou `{bcrypt}...` |
+| `WORKFLOW_ENGINE_IDENTITY_SEED_USERS_<n>_ROLES`    | papéis separados por vírgula                |
+| `WORKFLOW_ENGINE_HTTP_MAX_REQUEST_SIZE`            | tamanho máximo do corpo (padrão `256KB`)    |
+| `WORKFLOW_ENGINE_WEB_CONSOLE_LOCATION`             | local do build do console (padrão `classpath:/static/`) |
 | `SERVER_PORT`                                      | porta HTTP (padrão `8080`)                  |
 
 Sem perfil e sem variáveis de banco, a aplicação falha na inicialização em vez de assumir valores.
@@ -220,8 +225,9 @@ A aplicação é stateless entre requisições: não há sessão HTTP, e todo es
 dados. Isso facilita reinicialização, escalabilidade horizontal, recuperação de falhas e substituição de
 containers.
 
-Usuários da API são carregados da configuração na inicialização; alterá-los exige reiniciar as instâncias
-(TD-001).
+As sessões do console ficam no PostgreSQL (Spring Session JDBC), e não na memória da instância: qualquer
+instância atende qualquer usuário, e encerrar a sessão de um usuário vale para todas. O único estado local
+é o contador de falhas de login por IP (TD-009).
 
 ---
 
@@ -280,18 +286,31 @@ a infraestrutura de produção localmente.
 
 # 16. Local Development
 
-O `docker-compose.yml` orquestra o ambiente local:
+O caminho padrão não usa Docker. A classe `LocalWorkflowEngineApplication` (em `src/test`) sobe um PostgreSQL
+embutido e depois a aplicação com o perfil `local`:
 
 ```bash
-# apenas o PostgreSQL; a aplicação roda pelo Maven
-docker compose up -d
-./mvnw spring-boot:run -Dspring-boot.run.profiles=local
-
-# PostgreSQL + aplicação em container
-docker compose --profile app up --build
+./mvnw spring-boot:test-run                      # PostgreSQL embutido em :5433 + API em :8080
+cd frontend && npm install && npm run dev        # http://localhost:5173 (proxy para a API)
 ```
 
-O Docker Compose é uma ferramenta de desenvolvimento, não a definição da infraestrutura de produção.
+- Os dados ficam em `.local/postgres` (ignorada pelo Git) e persistem entre execuções.
+- Se a execução anterior foi encerrada à força, o servidor órfão é encerrado e o PostgreSQL se recupera
+  pelo WAL.
+- `LOCAL_DB_PORT` troca a porta. Com `DB_URL` definida, o banco embutido não sobe e a aplicação usa aquele
+  banco.
+- Argumentos extras vão por `-Dspring-boot.run.arguments=...`, por exemplo
+  `--workflow-engine.web.console-location=file:frontend/dist/` para servir o build do console nos testes E2E.
+
+O `docker-compose.yml` continua disponível como alternativa com containers:
+
+```bash
+docker compose up -d                             # apenas o PostgreSQL (:5432)
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+docker compose --profile app up --build          # PostgreSQL + aplicação, http://localhost:8080
+```
+
+As duas opções são ferramentas de desenvolvimento, não a definição da infraestrutura de produção.
 
 ---
 
@@ -302,15 +321,16 @@ A pipeline está em `.github/workflows/ci.yml` e roda a cada push em `main` e a 
 ```text
 Source Code
      │
-     ▼
-Build + Automated Tests      ./mvnw verify (unitários, arquitetura, integração)
+     ├──► Backend           ./mvnw verify: unitários, arquitetura, integração; cobertura mínima
+     ├──► Console           lint, tipos, testes unitários, build, npm audit
+     ├──► CodeQL            análise de segurança de Java e TypeScript
      │
      ▼
-Quality Checks               cobertura mínima (JaCoCo)
-     │
-     ▼
-Docker Image                 docker build
+End-to-end                 aplicação real + PostgreSQL + navegador (Playwright, axe)
+Docker Image               docker build
 ```
+
+Dependabot abre pull requests semanais de atualização para Maven, npm, GitHub Actions e imagens Docker.
 
 A publicação da imagem em um registry e o deployment automatizado serão adicionados quando houver um
 ambiente de destino definido.
