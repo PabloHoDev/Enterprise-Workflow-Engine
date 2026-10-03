@@ -12,8 +12,10 @@ Decisões relevantes de arquitetura, tecnologia e domínio do **Enterprise Workf
 | [ADR-002](ADR-002.md) | Estrutura de pacotes: módulo primeiro, camadas dentro        | Accepted | 2026-10-02 |
 | [ADR-003](ADR-003.md) | Stack tecnológica                                            | Accepted | 2026-10-02 |
 | [ADR-004](ADR-004.md) | Estratégia de persistência e consistência                    | Accepted | 2026-10-02 |
-| [ADR-005](ADR-005.md) | Autenticação HTTP Basic com usuários configurados externamente | Accepted | 2026-10-02 |
+| [ADR-005](ADR-005.md) | Autenticação HTTP Basic com usuários configurados externamente | Superseded by ADR-007 | 2026-10-02 |
 | [ADR-006](ADR-006.md) | Decisões de modelagem do domínio na primeira implementação   | Accepted | 2026-10-02 |
+| [ADR-007](ADR-007.md) | Módulo Identity e sessão segura para o console web            | Accepted | 2026-10-03 |
+| [ADR-008](ADR-008.md) | Console web como SPA servida pela própria aplicação           | Accepted | 2026-10-03 |
 
 ## Quando escrever um ADR
 
