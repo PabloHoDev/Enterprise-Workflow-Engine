@@ -29,10 +29,25 @@
         <springdoc.version>3.1.1</springdoc.version>
         <archunit.version>1.5.1</archunit.version>
         <jacoco.version>0.8.15</jacoco.version>
+        <embedded-postgres.version>2.2.2</embedded-postgres.version>
+        <!-- Mesma versão maior do postgres:18-alpine usado no CI e no docker-compose.yml -->
+        <embedded-postgres-binaries.version>18.6.0</embedded-postgres-binaries.version>
 
         <!-- Quality gate: cobertura mínima de linhas (docs/quality/TEST_STRATEGY.md) -->
         <jacoco.minimum.line.coverage>0.80</jacoco.minimum.line.coverage>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.zonky.test.postgres</groupId>
+                <artifactId>embedded-postgres-binaries-bom</artifactId>
+                <version>${embedded-postgres-binaries.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
 
@@ -116,6 +131,13 @@
             <artifactId>testcontainers-postgresql</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- PostgreSQL nativo, sem container: testes e ambiente local em máquinas sem Docker -->
+        <dependency>
+            <groupId>io.zonky.test</groupId>
+            <artifactId>embedded-postgres</artifactId>
+            <version>${embedded-postgres.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit</artifactId>
@@ -160,8 +182,8 @@
     <profiles>
         <!--
             Quality gate de cobertura. Ativo automaticamente em CI (variável CI=true) e sob demanda com
-            -Pcoverage-gate. Fica fora do build padrão porque, sem Docker, os testes de integração são
-            ignorados e a cobertura medida não representa a suíte completa.
+            -Pcoverage-gate. Fica fora do build padrão para não barrar ciclos locais de verify com
+            testes em andamento; a suíte completa (inclusive integração) roda em qualquer máquina.
         -->
         <profile>
             <id>coverage-gate</id>
