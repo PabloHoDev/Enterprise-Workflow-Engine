@@ -76,9 +76,16 @@ class AuthController {
     @Operation(summary = "Abre uma sessão do console web")
     MeResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest,
                      HttpServletResponse httpResponse) {
-        loginThrottle.acquire(httpRequest.getRemoteAddr());
-        Authentication authentication = authenticationManager.authenticate(
-                UsernamePasswordAuthenticationToken.unauthenticated(request.username(), request.password()));
+        String origin = httpRequest.getRemoteAddr();
+        loginThrottle.checkAllowed(origin);
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    UsernamePasswordAuthenticationToken.unauthenticated(request.username(), request.password()));
+        } catch (AuthenticationException failure) {
+            loginThrottle.recordFailure(origin);
+            throw failure;
+        }
         sessionStrategy.onAuthentication(authentication, httpRequest, httpResponse);
         SecurityContext context = contextHolder.createEmptyContext();
         context.setAuthentication(authentication);
