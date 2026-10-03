@@ -2,7 +2,7 @@
 
 # Enterprise Workflow Engine
 
-**Versão:** 0.1
+**Versão:** 0.2
 **Status:** Aprovado
 
 ---
@@ -33,7 +33,9 @@ Ambos ficam desabilitados no perfil `prod`.
 | Identificadores | UUID para Workflows; `key` (kebab-case) para Workflow Definitions                      |
 | Datas           | ISO-8601 em UTC (`2026-10-02T06:23:06.188864Z`)                                         |
 | Enumerações     | texto em maiúsculas (`RUNNING`, `GREATER_THAN`)                                         |
-| Autenticação    | HTTP Basic em todas as rotas `/api/**` (ver `SECURITY.md`)                             |
+| Autenticação    | sessão por cookie (console web) ou HTTP Basic (integrações); ver `SECURITY.md`          |
+| CSRF            | requisições com sessão que alteram estado enviam `X-XSRF-TOKEN` (§8)                    |
+| Tamanho         | corpo de requisição limitado a 256 KB                                                  |
 | Correlação      | `X-Request-Id` aceito na requisição e sempre devolvido na resposta                     |
 | Idioma          | mensagens da API em inglês, independentemente do locale                                |
 
@@ -84,9 +86,11 @@ Todos os erros seguem a RFC 9457 (Problem Details):
 | ------ | --------------------------------------------------------------------------------------------- | ------------------ |
 | `400`  | corpo malformado, campo obrigatório ausente, parâmetro com tipo ou valor inválido             | `errors[]`         |
 | `401`  | credenciais ausentes ou inválidas                                                             |                    |
-| `403`  | sem permissão para o endpoint, ou Actor sem o papel exigido pela Transition                   |                    |
+| `403`  | sem permissão para o endpoint, Actor sem o papel exigido pela Transition, ou token CSRF ausente/inválido (`title: Invalid CSRF token`) | |
 | `404`  | recurso inexistente                                                                           |                    |
-| `409`  | conflito com o estado atual: chave duplicada, status incompatível, ação indisponível no State atual, modificação concorrente | |
+| `409`  | conflito com o estado atual: chave duplicada, status incompatível, ação indisponível no State atual, modificação concorrente, regra de administração de contas | `code` (contas) |
+| `413`  | corpo da requisição acima de 256 KB                                                          |                    |
+| `429`  | muitas falhas de login a partir da mesma origem                                             | header `Retry-After` |
 | `422`  | requisição bem formada, mas recusada por regra: estrutura de definição inválida, definição sem versão ativa, Rule não satisfeita | `violations[]`, `unsatisfiedRules[]` |
 | `500`  | erro inesperado; a resposta não expõe detalhes internos                                       |                    |
 
@@ -104,6 +108,8 @@ Base: `/api/v1/workflow-definitions`. Escrita restrita ao papel `ADMIN`.
 | `POST` | `/`                                      | UC-001      | `201`   |
 | `GET`  | `/`                                      | UC-005      | `200`   |
 | `GET`  | `/{key}`                                 | UC-005      | `200`   |
+
+A listagem informa `activeVersion` (número da versão ativa ou `null`) de cada definição.
 | `POST` | `/{key}/versions`                        | UC-002      | `201`   |
 | `GET`  | `/{key}/versions/{number}`               | UC-005      | `200`   |
 | `POST` | `/{key}/versions/{number}/activate`      | UC-003      | `200`   |
@@ -157,6 +163,7 @@ Base: `/api/v1/workflows`. Exige autenticação; ações podem exigir papéis co
 | ------ | ---------------- | --------------- | ------- |
 | `POST` | `/`              | UC-006          | `201`   |
 | `GET`  | `/`              | UC-008          | `200`   |
+| `GET`  | `/summary`       | —               | `200`   |
 | `GET`  | `/{id}`          | UC-008          | `200`   |
 | `POST` | `/{id}/start`    | UC-007          | `200`   |
 | `GET`  | `/{id}/actions`  | —               | `200`   |
@@ -202,6 +209,12 @@ Representação do Workflow:
 
 `GET /` aceita os filtros opcionais `definitionKey` e `status`.
 
+`GET /summary` devolve a quantidade de Workflows por status, incluindo os status sem nenhum Workflow:
+
+```json
+{ "total": 12, "byStatus": { "CREATED": 2, "RUNNING": 5, "COMPLETED": 4, "CANCELLED": 1 } }
+```
+
 `GET /{id}/actions` lista as ações disponíveis a partir do State atual, com o State de destino e o papel
 exigido. Não avalia Rules: uma ação listada ainda pode ser recusada.
 
@@ -221,13 +234,61 @@ Operações registradas:
 | --------------------- | ------------------------------------------------------------------------------------------------------- |
 | `WORKFLOW_DEFINITION` | `DEFINITION_CREATED`, `DEFINITION_VERSION_CREATED`, `DEFINITION_VERSION_ACTIVATED`, `DEFINITION_VERSION_DEACTIVATED` |
 | `WORKFLOW`            | `WORKFLOW_CREATED`, `WORKFLOW_STARTED`, `WORKFLOW_ACTION_EXECUTED`, `WORKFLOW_CANCELLED`                |
+| `USER`                | `LOGIN_SUCCEEDED`, `LOGIN_FAILED`, `ACCOUNT_LOCKED`, `LOGOUT`, `USER_CREATED`, `USER_UPDATED`, `USER_PASSWORD_RESET`, `USER_PASSWORD_CHANGED`, `USER_UNLOCKED` |
+| `HTTP_ENDPOINT`       | `ACCESS_DENIED` (`resourceId` = método e caminho)                                                       |
 
 `outcome` é `SUCCESS` ou `REJECTED`. Tentativas recusadas pelo domínio em Workflows (ação indisponível,
 Actor sem papel, Rule não satisfeita, status incompatível) geram registro `REJECTED`.
 
 ---
 
-# 8. Operação
+# 8. Autenticação do console
+
+Base: `/api/v1/auth`. Detalhes em `SECURITY.md` §4.
+
+| Método | Caminho     | Acesso      | Uso                                                                  | Sucesso |
+| ------ | ----------- | ----------- | -------------------------------------------------------------------- | ------- |
+| `GET`  | `/csrf`     | público     | emite o cookie `XSRF-TOKEN`                                          | `204`   |
+| `POST` | `/login`    | público     | `{ "username", "password" }` → abre a sessão e devolve o usuário     | `200`   |
+| `GET`  | `/me`       | autenticado | `{ "username", "displayName", "roles" }`                             | `200`   |
+| `POST` | `/password` | autenticado | `{ "currentPassword", "newPassword" }`; encerra as sessões do usuário | `204`   |
+| `POST` | `/logout`   | autenticado | encerra a sessão                                                     | `204`   |
+
+Sequência do console:
+
+```text
+GET  /api/v1/auth/csrf            → cookie XSRF-TOKEN
+POST /api/v1/auth/login           → cookie EWE_SESSION (HttpOnly); token CSRF renovado
+GET  /api/v1/auth/csrf            → novo XSRF-TOKEN
+POST /api/v1/...                  → header X-XSRF-TOKEN = valor do cookie
+```
+
+---
+
+# 9. Usuários
+
+Base: `/api/v1/users`. Restrito ao papel `ADMIN`.
+
+| Método | Caminho                  | Uso                                                          | Sucesso |
+| ------ | ------------------------ | ------------------------------------------------------------ | ------- |
+| `GET`  | `/`                      | lista paginada                                               | `200`   |
+| `GET`  | `/{username}`            | consulta                                                     | `200`   |
+| `POST` | `/`                      | `{ "username", "displayName", "password", "roles" }`         | `201`   |
+| `PUT`  | `/{username}`            | `{ "displayName", "roles", "enabled" }`                      | `200`   |
+| `POST` | `/{username}/password`   | `{ "newPassword" }`                                          | `204`   |
+| `POST` | `/{username}/unlock`     | remove o bloqueio por tentativas                             | `200`   |
+
+A resposta nunca contém a senha nem o hash. Campos: `id`, `username`, `displayName`, `roles`, `enabled`,
+`locked`, `lockedUntil`, `failedLoginAttempts`, `lastLoginAt`, `passwordChangedAt`, `createdAt`,
+`updatedAt`.
+
+Erros específicos (`code`): `USER_NOT_FOUND` (404), `USERNAME_TAKEN`, `LAST_ADMINISTRATOR`,
+`SELF_LOCKOUT` (409), `WRONG_CURRENT_PASSWORD` (400). Senha fora da política ou dados inválidos → `422`
+com `violations`.
+
+---
+
+# 10. Operação
 
 | Caminho                       | Acesso  | Uso                          |
 | ----------------------------- | ------- | ---------------------------- |
@@ -239,7 +300,7 @@ Actor sem papel, Rule não satisfeita, status incompatível) geram registro `REJ
 
 ---
 
-# 9. Documentos Relacionados
+# 11. Documentos Relacionados
 
 ```text
 docs/architecture/SECURITY.md
