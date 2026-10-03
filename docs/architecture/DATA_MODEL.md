@@ -2,7 +2,7 @@
 
 # Enterprise Workflow Engine
 
-**Versão:** 0.2
+**Versão:** 0.3
 **Status:** Aprovado
 
 ---
@@ -65,6 +65,9 @@ workflow_definition 1 ─── N workflow_definition_version
                          workflow_transition_rule   workflow_history
 
 audit_record   (sem relacionamentos: referencia recursos por tipo e identificador)
+
+app_user 1 ─── N app_user_role                       (módulo Identity)
+spring_session 1 ─── N spring_session_attributes      (sessões do console)
 ```
 
 ---
@@ -204,7 +207,39 @@ History e Audit são tabelas distintas com propósitos distintos (BR-034).
 
 ---
 
-# 7. Versionamento e Imutabilidade
+# 7. Identity
+
+## 7.1 `app_user`
+
+Conta que pode se autenticar e agir como Actor (ADR-007).
+
+| Coluna                  | Tipo           | Observação                                         |
+| ----------------------- | -------------- | -------------------------------------------------- |
+| `id`                    | `uuid`         | chave primária                                     |
+| `username`              | `varchar(64)`  | único; é o `actorId` em History e Audit            |
+| `display_name`          | `varchar(120)` |                                                    |
+| `password_hash`         | `varchar(255)` | hash no formato `{bcrypt}…`; nunca a senha         |
+| `enabled`               | `boolean`      | conta ativa                                        |
+| `failed_login_attempts` | `integer`      | falhas consecutivas desde o último sucesso         |
+| `locked_until`          | `timestamptz`  | bloqueio temporário por tentativas                 |
+| `last_login_at`         | `timestamptz`  | último login pelo console                          |
+| `password_changed_at`   | `timestamptz`  |                                                    |
+| `created_at`, `updated_at` | `timestamptz` |                                                  |
+| `lock_version`          | `bigint`       | controle de concorrência otimista                  |
+
+## 7.2 `app_user_role`
+
+Papéis da conta (`user_id`, `role`), removidos em cascata com a conta.
+
+## 7.3 `spring_session` e `spring_session_attributes`
+
+Sessões do console web no formato do Spring Session JDBC (`V5`). Guardar a sessão no banco mantém as
+instâncias sem estado e permite encerrar as sessões de um usuário a partir de qualquer instância. Sessões
+expiradas são removidas periodicamente pela própria aplicação.
+
+---
+
+# 8. Versionamento e Imutabilidade
 
 ```text
 workflow_definition "purchase-approval"
@@ -220,7 +255,7 @@ workflow_definition "purchase-approval"
 
 ---
 
-# 8. Índices
+# 9. Índices
 
 Além das chaves primárias e únicas:
 
@@ -236,7 +271,7 @@ Além das chaves primárias e únicas:
 
 ---
 
-# 9. Migrations
+# 10. Migrations
 
 - Ferramenta: Flyway, executado na inicialização da aplicação.
 - Arquivos SQL versionados: `V<n>__<descricao>.sql`.
@@ -249,10 +284,12 @@ Além das chaves primárias e únicas:
 | `V1`   | módulo Workflow Definition                       |
 | `V2`   | módulo Workflow Execution                        |
 | `V3`   | módulo Audit                                     |
+| `V4`   | módulo Identity                                  |
+| `V5`   | sessões do console (Spring Session JDBC)         |
 
 ---
 
-# 10. Relação com Outros Documentos
+# 11. Relação com Outros Documentos
 
 ```text
 docs/product/DOMAIN.md
