@@ -73,8 +73,14 @@ class JpaWorkflowDefinitionRepository implements WorkflowDefinitionRepository {
 
     @Override
     public Page<DefinitionSummary> findAll(Pageable pageable) {
-        return definitions.findAll(pageable).map(entity -> new DefinitionSummary(entity.getId(), entity.getKey(),
-                entity.getName(), entity.getDescription(), entity.getCreatedAt(), entity.getUpdatedAt()));
+        Page<WorkflowDefinitionEntity> page = definitions.findAll(pageable);
+        // Uma consulta para as versões ativas da página inteira, em vez de uma por definição.
+        Map<UUID, Integer> activeVersions = versions.findByDefinitionIdInAndStatus(
+                        page.map(WorkflowDefinitionEntity::getId).getContent(), VersionStatus.ACTIVE).stream()
+                .collect(Collectors.toMap(version -> version.getDefinition().getId(), DefinitionVersionEntity::getNumber));
+        return page.map(entity -> new DefinitionSummary(entity.getId(), entity.getKey(), entity.getName(),
+                entity.getDescription(), entity.getCreatedAt(), entity.getUpdatedAt(),
+                activeVersions.get(entity.getId())));
     }
 
     @Override
