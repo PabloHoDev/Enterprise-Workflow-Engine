@@ -34,6 +34,9 @@ Prioridade: **Alta** (próxima etapa), **Média** (quando houver demanda), **Bai
 | TB-010 | Idempotência na criação de Workflows             | Média      | UC-006 (External System)       |
 | TB-011 | Prazos e expiração por State                     | Baixa      | —                              |
 | TB-012 | Validação das variáveis do Workflow              | Média      | UC-006 A2                      |
+| TB-013 | Login por OIDC, com MFA e SSO                     | Alta       | ADR-007, TD-001                |
+| TB-014 | Internacionalização do console                    | Baixa      | ADR-008                        |
+| TB-015 | Edição visual (arrastar e soltar) de definições   | Baixa      | REQUIREMENTS §8                |
 
 ---
 
@@ -97,6 +100,24 @@ Permitir que um State tenha prazo, com ação automática ao expirar. Depende de
 
 Permitir que a definição declare as variáveis esperadas (nome, tipo, obrigatoriedade) e validar a entrada
 na criação. Hoje as variáveis têm formato livre.
+
+---
+
+## TB-013 — Login por OIDC, com MFA e SSO
+
+Integrar um provedor de identidade (Keycloak, Entra ID, Okta) pelo fluxo Authorization Code com PKCE no
+servidor (padrão BFF), mantendo o cookie de sessão HttpOnly no navegador. Traz MFA, SSO e políticas de
+senha centralizadas. As contas locais podem continuar como contas de serviço. Merece ADR.
+
+## TB-014 — Internacionalização do console
+
+Hoje a interface é em português e as mensagens da API em inglês, traduzidas no console. Extrair textos
+para arquivos de mensagens permitiria outros idiomas.
+
+## TB-015 — Edição visual de definições
+
+O console edita definições por formulário com pré-visualização do diagrama. Um editor de arrastar e soltar
+continua fora do escopo dos requisitos.
 
 ---
 
