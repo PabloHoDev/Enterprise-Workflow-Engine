@@ -400,6 +400,26 @@ O sistema deve disponibilizar mecanismos para consulta dos registros de auditori
 
 ---
 
+## RF-027 — Console web
+
+O sistema deve oferecer um console web para administradores e usuários de negócio, cobrindo:
+
+* consulta e modelagem de Workflow Definitions e versões;
+* criação, início, execução de ações e cancelamento de Workflows;
+* consulta de histórico e de auditoria;
+* gestão de contas de usuário.
+
+O console deve ser responsivo, acessível (WCAG 2 AA) e não conter regras de negócio próprias.
+
+---
+
+## RF-028 — Gestão de contas
+
+O sistema deve permitir que administradores criem contas, atribuam papéis, ativem ou desativem contas,
+redefinam senhas e removam bloqueios; e que cada usuário troque a própria senha.
+
+---
+
 # 7. Regras Gerais de Integridade
 
 As seguintes regras devem ser preservadas:
@@ -434,9 +454,8 @@ Mudanças relevantes de estado devem ser rastreáveis.
 
 Os seguintes itens não fazem parte dos requisitos iniciais:
 
-* editor visual de workflows;
 * implementação completa de BPMN;
-* frontend completo;
+* editor visual de arrastar e soltar para workflows (o console oferece um editor por formulário);
 * inteligência artificial para definição automática de workflows;
 * engine de regras totalmente configurável;
 * processamento distribuído obrigatório;
