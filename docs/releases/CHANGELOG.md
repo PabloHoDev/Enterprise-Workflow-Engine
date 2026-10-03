@@ -11,7 +11,52 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 Conteúdo previsto para a versão `0.1.0`.
 
-### Adicionado
+### Adicionado — 2026-10-03
+
+**Ambiente sem Docker**
+
+- PostgreSQL 18 embutido (`io.zonky.test:embedded-postgres`) para os testes de integração quando não há
+  Docker. A suíte completa roda em qualquer máquina, e nenhum teste é mais ignorado por falta de banco.
+- `./mvnw spring-boot:test-run` sobe o PostgreSQL embutido, com dados persistentes em `.local/postgres`, e a
+  aplicação com o perfil `local`. O Docker Compose passa a ser opcional.
+
+**Console web** (ADR-008)
+
+- SPA em React 19 + TypeScript, servida pela própria aplicação na mesma origem da API.
+- Painel com contagem por status e execuções recentes.
+- Workflows: lista com filtros na URL, criação com variáveis, detalhe com ações disponíveis, regras de cada
+  transição, diagrama do processo com o estado atual, histórico e cancelamento.
+- Definições: lista, detalhe com versões e diagrama, ativação/desativação, editor de definição e de nova
+  versão com pré-visualização e exemplo pronto.
+- Auditoria com filtros; gestão de usuários; perfil com troca de senha.
+- Tema claro/escuro, layout responsivo e verificação automática de acessibilidade (WCAG 2 AA).
+
+**Identidade e segurança** (ADR-007)
+
+- Módulo Identity: contas no PostgreSQL com BCrypt, política de senha, bloqueio após 5 falhas, gestão
+  pelo administrador, troca da própria senha e proteção do último administrador.
+- Login do console por sessão em cookie HttpOnly guardada no PostgreSQL, com CSRF e rotação a cada login.
+- Revogação imediata: mudança de acesso encerra as sessões do usuário.
+- Limite de falhas de login por IP (`429`), limite de 256 KB por requisição (`413`).
+- Cabeçalhos CSP, Referrer-Policy e Permissions-Policy.
+- Auditoria de login, falha de login, bloqueio, logout, acesso negado e gestão de contas.
+- `GET /api/v1/workflows/summary` e `activeVersion` na listagem de definições.
+
+**Engenharia**
+
+- Testes unitários do console (Vitest), testes end-to-end com Playwright e axe, testes de identidade e
+  segurança no backend.
+- CI com jobs de console e end-to-end; CodeQL; Dependabot.
+- ADR-007 e ADR-008.
+
+### Alterado — 2026-10-03
+
+- ADR-005 (HTTP Basic com usuários na configuração) substituído pelo ADR-007. HTTP Basic continua
+  disponível para integrações, com as contas do banco.
+- `workflow-engine.security.users` substituído por `workflow-engine.identity.seed-users`.
+- `Dockerfile` ganhou um estágio Node para o build do console.
+
+### Adicionado — 2026-10-02
 
 **Workflow Definition**
 
