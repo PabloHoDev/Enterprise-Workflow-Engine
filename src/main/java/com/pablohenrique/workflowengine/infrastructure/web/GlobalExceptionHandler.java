@@ -1,5 +1,6 @@
 package com.pablohenrique.workflowengine.infrastructure.web;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -12,8 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.csrf.CsrfException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -48,14 +51,47 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(exception, problem, headers, status, request);
     }
 
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException exception,
+                                                                  HttpHeaders headers, HttpStatusCode status,
+                                                                  WebRequest request) {
+        if (causedByPayloadTooLarge(exception)) {
+            ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONTENT_TOO_LARGE,
+                    "The request body exceeds the allowed size");
+            problem.setTitle("Payload too large");
+            return handleExceptionInternal(exception, problem, headers, HttpStatus.CONTENT_TOO_LARGE, request);
+        }
+        return super.handleHttpMessageNotReadable(exception, headers, status, request);
+    }
+
+    private boolean causedByPayloadTooLarge(Throwable exception) {
+        for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
+            if (cause instanceof RequestSizeLimitFilter.PayloadTooLargeException) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @ExceptionHandler(AuthenticationException.class)
-    ResponseEntity<ProblemDetail> unauthenticated(AuthenticationException exception) {
+    ResponseEntity<ProblemDetail> unauthenticated(AuthenticationException exception, HttpServletRequest request) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED,
                 "Valid credentials are required to access this resource");
         problem.setTitle("Authentication required");
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .header(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"workflow-engine\", charset=\"UTF-8\"")
-                .body(problem);
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(HttpStatus.UNAUTHORIZED);
+        // O console web identifica suas chamadas; para elas o desafio Basic abriria a janela de login do navegador.
+        if (!"XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
+            response.header(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"workflow-engine\", charset=\"UTF-8\"");
+        }
+        return response.body(problem);
+    }
+
+    @ExceptionHandler(CsrfException.class)
+    ProblemDetail csrfRejected(CsrfException exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN,
+                "The request is missing a valid CSRF token. Fetch /api/v1/auth/csrf and retry");
+        problem.setTitle("Invalid CSRF token");
+        return problem;
     }
 
     @ExceptionHandler(AccessDeniedException.class)
