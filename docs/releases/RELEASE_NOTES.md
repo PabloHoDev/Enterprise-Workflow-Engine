@@ -23,6 +23,10 @@ API e auditar tudo o que aconteceu.
 - **Aplicar regras.** Condicione uma Transition a dados da execução, como o valor de uma compra.
 - **Rastrear.** Consulte o histórico de cada workflow e a trilha de auditoria, que inclui as tentativas
   recusadas.
+- **Usar pelo navegador.** Um console web cobre todo o ciclo: modelar e ativar processos, abrir
+  solicitações, decidir, acompanhar o histórico, auditar e administrar usuários.
+- **Confiar no acesso.** Login com sessão segura, bloqueio após tentativas erradas, troca de senha e
+  revogação imediata de acesso.
 
 ### Como começar
 
@@ -36,10 +40,10 @@ de compras. A referência da API está em `docs/architecture/API_DESIGN.md` e, c
 
 ### Limitações conhecidas
 
-- Os usuários são definidos por configuração e autenticados por HTTP Basic: use TLS e trate esta versão
-  como não destinada a exposição pública (TD-001, TD-003).
-- A imagem Docker e a pipeline de CI ainda não foram executadas (TD-006).
-- Não há transições automáticas nem notificações; toda mudança de State parte de uma chamada à API.
+- Sem MFA nem login único (SSO); a integração com um provedor de identidade está planejada (TD-001).
+- O limite de falhas de login por IP vale por instância; em produção, aplique também limite no gateway
+  (TD-009).
+- Não há transições automáticas nem notificações; toda mudança de State parte de uma ação de um usuário.
 
 A lista completa está em `docs/releases/TECHNICAL_DEBT.md`.
 
