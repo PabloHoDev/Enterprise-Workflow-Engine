@@ -74,10 +74,12 @@ Núcleo do motor de workflow.
 Capacidades que aproximam o sistema de um cenário corporativo real.
 
 - 🟡 Autenticação e autorização por papel, por endpoint e por Transition;
-- 🟡 Auditoria de operações, inclusive das recusadas (UC-011);
+- 🟡 Identidade: contas no banco, política de senha, bloqueio, sessão segura, revogação (ADR-007);
+- 🟡 Console web: definições, execuções, auditoria e usuários (ADR-008);
+- 🟡 Auditoria de operações, inclusive das recusadas e de autenticação (UC-011);
 - 🟡 Controle de concorrência otimista;
 - 🟡 Health checks, métricas e logs correlacionados;
-- ⚪ Autenticação por OAuth2/OIDC (TD-001);
+- ⚪ Login por OIDC com MFA e SSO (TB-013);
 - ⚪ Eventos de domínio e notificações (TB-004);
 - ⚪ Transições automáticas executadas pelo sistema (TB-003).
 
@@ -90,7 +92,8 @@ Capacidades que aproximam o sistema de um cenário corporativo real.
 Preparação para uma versão estável e próxima de ambiente produtivo.
 
 - 🟡 Imagem Docker e ambiente local com Docker Compose;
-- 🟡 Pipeline de CI com testes, quality gate de cobertura e build da imagem;
+- 🟢 Pipeline de CI com testes, quality gate de cobertura e build da imagem (executada com sucesso);
+- 🟡 CI com testes do console e end-to-end em navegador real; CodeQL; Dependabot;
 - ⚪ Publicação da imagem em registry e deployment automatizado;
 - ⚪ Exportação de métricas e tracing (TB-005);
 - ⚪ Testes de carga e definição de objetivos de desempenho (RNF-011);
@@ -120,12 +123,18 @@ ETAPA 01 — Núcleo do Motor
 ├── FASE 12 — Auditoria                                🟡
 └── FASE 13 — Qualidade (testes, arquitetura, CI)      🟡
 
-ETAPA 02 — Evolução Corporativa
+ETAPA 02 — Segurança e Console
 │
-├── FASE 14 — Validação e release 0.1.0                🔲
-├── FASE 15 — Identidade (OAuth2/OIDC)                 ⚪
-├── FASE 16 — Transições automáticas e eventos         ⚪
-└── FASE 17 — Operação (métricas, tracing, deploy)     ⚪
+├── FASE 14 — Identidade e sessão segura (ADR-007)     🟡
+├── FASE 15 — Console web (ADR-008)                    🟡
+└── FASE 16 — Qualidade do console (unitários, E2E, acessibilidade, CI)   🟡
+
+ETAPA 03 — Evolução Corporativa
+│
+├── FASE 17 — Validação e release 0.1.0                🔲
+├── FASE 18 — OIDC, MFA e SSO                          ⚪
+├── FASE 19 — Transições automáticas e eventos         ⚪
+└── FASE 20 — Operação (métricas, tracing, deploy)     ⚪
 ```
 
 A FASE 07 definiu: stack tecnológica, Java/Spring Boot, Maven, estrutura inicial do projeto, estrutura de
@@ -136,15 +145,21 @@ base de testes, base Docker e base de qualidade.
 
 # 4. Próximos Passos
 
-1. **Validar a ETAPA 01** conforme `docs/quality/CHECKLISTS.md` e aprovar ou registrar correções.
-2. **Confirmar a pipeline** na sua primeira execução: a construção da imagem Docker ainda não foi executada
-   (ver `docs/releases/TECHNICAL_DEBT.md`, TD-006).
+1. **Validar as ETAPAS 01 e 02** conforme `docs/quality/CHECKLISTS.md` e aprovar ou registrar correções.
+2. **Acompanhar a CI** com os novos jobs (console, end-to-end, CodeQL).
 3. **Publicar a release 0.1.0** conforme `docs/releases/VERSIONING.md`.
-4. Priorizar os itens de `docs/product/TECHNICAL_BACKLOG.md` para a ETAPA 02.
+4. Priorizar os itens de `docs/product/TECHNICAL_BACKLOG.md` para a ETAPA 03.
 
 ---
 
 # 5. Histórico de Evolução
+
+## 2026-10-03
+
+- Auditoria do backend em execução: 4 achados de segurança.
+- Módulo Identity e sessão segura do console (ADR-007), resolvendo os achados.
+- Console web (ADR-008) com testes unitários, end-to-end e de acessibilidade.
+- CI ampliada com console, end-to-end, CodeQL e Dependabot.
 
 ## 2026-10-02
 
