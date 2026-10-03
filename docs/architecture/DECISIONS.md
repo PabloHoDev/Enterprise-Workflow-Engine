@@ -30,8 +30,11 @@ registro completo, onde estão o contexto, as alternativas e as consequências.
 | Transações               | uma transação por caso de uso, na camada de aplicação                      | ADR-004  |
 | Concorrência             | lock otimista por aggregate; conflito retorna `409`                        | ADR-004  |
 | Integridade              | States, Transitions e State atual protegidos por chaves estrangeiras       | ADR-004  |
-| Autenticação             | HTTP Basic stateless, usuários por configuração externa                    | ADR-005  |
-| Autorização              | por endpoint (Spring Security) e por Transition (domínio)                  | ADR-005  |
+| Identidade               | contas no banco, BCrypt, política de senha, bloqueio por tentativas        | ADR-007  |
+| Autenticação do console  | sessão em cookie HttpOnly no PostgreSQL, CSRF, rotação a cada login        | ADR-007  |
+| Autenticação de integrações | HTTP Basic sem sessão, mesmas contas e auditoria                        | ADR-007  |
+| Autorização              | por endpoint (Spring Security) e por Transition (domínio)                  | ADR-007  |
+| Console web              | SPA React + TypeScript (Vite), servida pela aplicação na mesma origem      | ADR-008  |
 | Step                     | representado por State + Transitions, sem entidade própria                 | ADR-006  |
 | Versões                  | estrutura imutável; no máximo uma versão ativa por definição               | ADR-006  |
 | Ciclo de vida            | `status` do Workflow separado do `currentState` do processo                | ADR-006  |
@@ -48,7 +51,8 @@ Avaliadas e conscientemente não adotadas agora. O critério para retomá-las es
 | ---------------------------------- | ------------------------------------------------------ | ------------------------ |
 | Microservices                      | rejeitado como arquitetura inicial                     | ADR-001                  |
 | Módulos Maven separados            | adiado; ArchUnit cobre a necessidade atual             | ADR-002, TB-006          |
-| OAuth2 / OIDC                      | adiado até existir um provedor de identidade           | ADR-005, TD-001          |
+| OAuth2 / OIDC, MFA, SSO            | adiado até existir um provedor de identidade           | ADR-007, TB-013          |
+| Next.js / SSR para o console       | sem ganho para um console autenticado                  | ADR-008                  |
 | Mensageria e eventos de integração | sem necessidade concreta                               | `ARCHITECTURE.md` §19, TB-004 |
 | Cache                              | sem evidência de necessidade                           | `ARCHITECTURE.md` §20    |
 | Event sourcing                     | complexidade não justificada pelos requisitos          | ADR-004                  |
