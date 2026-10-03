@@ -28,3 +28,15 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Front-end
+node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/playwright/.cache/
+*.tsbuildinfo
+# Build do console copiado para dentro do jar (feito pelo Dockerfile)
+src/main/resources/static/
