@@ -9,8 +9,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Limita tentativas de login por origem (janela deslizante). Complementa o bloqueio por conta: este impede
- * que uma mesma origem teste muitas contas; o bloqueio impede muitas senhas contra uma mesma conta.
+ * Limita falhas de login por origem (janela deslizante). Complementa o bloqueio por conta: este impede que
+ * uma mesma origem teste muitas contas; o bloqueio impede muitas senhas contra uma mesma conta. Logins
+ * bem-sucedidos não contam, para não penalizar vários usuários legítimos atrás do mesmo IP.
  *
  * <p>O estado é local à instância. Com várias instâncias, o limite efetivo é multiplicado; em produção o
  * gateway deve aplicar o seu próprio limite (docs/architecture/SECURITY.md).
@@ -34,23 +35,34 @@ public class LoginThrottle {
     }
 
     /**
-     * Registra a tentativa da origem.
+     * Verifica se a origem ainda pode tentar um login.
      *
-     * @throws TooManyLoginAttemptsException quando a origem excedeu o limite da janela
+     * @throws TooManyLoginAttemptsException quando a origem atingiu o limite de falhas da janela
      */
-    public void acquire(String origin) {
+    public void checkAllowed(String origin) {
+        Deque<Instant> failures = attemptsByOrigin.get(origin);
+        if (failures == null) {
+            return;
+        }
+        Instant now = clock.instant();
+        synchronized (failures) {
+            discardOlderThanWindow(failures, now);
+            if (failures.size() >= maxAttempts) {
+                Duration retryAfter = Duration.between(now, failures.peekFirst().plus(window));
+                throw new TooManyLoginAttemptsException(Math.max(1, retryAfter.toSeconds()));
+            }
+        }
+    }
+
+    public void recordFailure(String origin) {
         Instant now = clock.instant();
         if (attemptsByOrigin.size() > MAX_TRACKED_ORIGINS) {
             evictExpired(now);
         }
-        Deque<Instant> attempts = attemptsByOrigin.computeIfAbsent(origin, key -> new ArrayDeque<>());
-        synchronized (attempts) {
-            discardOlderThanWindow(attempts, now);
-            if (attempts.size() >= maxAttempts) {
-                Duration retryAfter = Duration.between(now, attempts.peekFirst().plus(window));
-                throw new TooManyLoginAttemptsException(Math.max(1, retryAfter.toSeconds()));
-            }
-            attempts.addLast(now);
+        Deque<Instant> failures = attemptsByOrigin.computeIfAbsent(origin, key -> new ArrayDeque<>());
+        synchronized (failures) {
+            discardOlderThanWindow(failures, now);
+            failures.addLast(now);
         }
     }
 
