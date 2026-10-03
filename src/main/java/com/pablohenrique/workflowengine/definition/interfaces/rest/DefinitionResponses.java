@@ -17,11 +17,11 @@ final class DefinitionResponses {
     }
 
     record DefinitionSummaryResponse(UUID id, String key, String name, String description, Instant createdAt,
-                                     Instant updatedAt) {
+                                     Instant updatedAt, Integer activeVersion) {
 
         static DefinitionSummaryResponse from(DefinitionSummary summary) {
             return new DefinitionSummaryResponse(summary.id(), summary.key(), summary.name(), summary.description(),
-                    summary.createdAt(), summary.updatedAt());
+                    summary.createdAt(), summary.updatedAt(), summary.activeVersion());
         }
     }
 
