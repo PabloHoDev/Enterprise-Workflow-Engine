@@ -3,6 +3,9 @@ target/
 !.mvn/wrapper/maven-wrapper.properties
 .mvn/wrapper/maven-wrapper.jar
 
+# PostgreSQL embutido do ambiente local (./mvnw spring-boot:test-run)
+.local/
+
 # Environment / secrets
 .env
 .env.*
