@@ -2,7 +2,7 @@
 
 # Enterprise Workflow Engine
 
-**Versão:** 0.1
+**Versão:** 0.2
 **Status:** Em evolução
 
 ---
@@ -18,54 +18,52 @@ limitações do que existe ficam em `docs/product/TECHNICAL_BACKLOG.md`.
 
 # 2. Resumo
 
-| ID     | Item                                                        | Prioridade |
-| ------ | ----------------------------------------------------------- | ---------- |
-| TD-001 | Usuários estáticos com HTTP Basic                           | Alta       |
-| TD-002 | Negações de acesso HTTP não são auditadas                   | Média      |
-| TD-003 | Sem limitação de taxa nem proteção contra força bruta       | Média      |
-| TD-004 | History carregado por inteiro a cada operação               | Média      |
-| TD-005 | Aggregate de definição carrega todas as versões             | Baixa      |
-| TD-006 | Imagem Docker e pipeline de CI ainda não executadas         | Alta       |
-| TD-007 | Validação local feita em JDK 27, não no JDK 25 alvo         | Baixa      |
-| TD-008 | Variáveis do Workflow sem limite de tamanho próprio         | Baixa      |
+| ID     | Item                                                        | Prioridade | Situação  |
+| ------ | ----------------------------------------------------------- | ---------- | --------- |
+| TD-001 | Sem MFA nem SSO                                             | Média      | Aberto (reduzido em 2026-10-03) |
+| TD-002 | Requisições anônimas recusadas (`401`) não são auditadas    | Baixa      | Aberto (reduzido em 2026-10-03) |
+| TD-004 | History carregado por inteiro a cada operação               | Média      | Aberto    |
+| TD-005 | Aggregate de definição carrega todas as versões             | Baixa      | Aberto    |
+| TD-007 | Validação local feita em JDK 27, não no JDK 25 alvo         | Baixa      | Aberto    |
+| TD-009 | Limite de falhas de login por IP local à instância          | Média      | Aberto    |
+| TD-010 | Conflitos de concorrência (`409`) não são auditados         | Baixa      | Aberto    |
+| TD-011 | Dados dos testes de integração e end-to-end se acumulam     | Baixa      | Aberto    |
+
+Resolvidos em 2026-10-03:
+
+| ID     | Item                                                        | Resolução                                              |
+| ------ | ----------------------------------------------------------- | ------------------------------------------------------ |
+| TD-003 | Sem limitação de taxa nem proteção contra força bruta       | bloqueio por conta + limite por IP (ADR-007)           |
+| TD-006 | Imagem Docker e pipeline de CI nunca executadas             | primeira execução da CI concluída com sucesso          |
+| TD-008 | Variáveis do Workflow sem limite de tamanho                 | corpo de requisição limitado a 256 KB                  |
 
 ---
 
-# 3. Itens
+# 3. Itens Abertos
 
-## TD-001 — Usuários estáticos com HTTP Basic
+## TD-001 — Sem MFA nem SSO
 
-- **Descrição:** os usuários da API vêm da configuração e são carregados na inicialização.
-- **Motivo:** o módulo de identidade está fora do escopo inicial (ADR-005).
-- **Impacto:** sem expiração, revogação ou troca de senha sem reinício; credencial enviada a cada
-  requisição, exigindo TLS; custo de BCrypt por requisição.
-- **Prioridade:** Alta — é o principal item antes de um uso real.
-- **Possível solução:** OAuth2 Resource Server com JWT de um provedor OIDC. O domínio depende apenas de
-  `Actor(id, roles)`, então a mudança fica restrita a `infrastructure/security`.
+- **Descrição:** contas e senhas são geridas pela própria aplicação (ADR-007). Não há segundo fator nem
+  login único com o diretório da empresa.
+- **Motivo:** não há provedor de identidade disponível para desenvolvimento e demonstração.
+- **Impacto:** a segurança da conta depende só da senha (mitigado por política de senha, bloqueio e
+  limite por IP).
+- **Prioridade:** Média; Alta antes de uso por uma organização real.
+- **Possível solução:** OIDC com provedor externo (TB-013). O domínio depende apenas de
+  `Actor(id, roles)` e o console só conhece `/api/v1/auth/*`.
 
-## TD-002 — Negações de acesso HTTP não são auditadas
+## TD-002 — Requisições anônimas recusadas não são auditadas
 
-- **Descrição:** respostas `401` e `403` decididas pelo Spring Security (por endpoint) não geram registro
-  de Audit. Recusas decididas pelo domínio, como o papel exigido por uma Transition, são auditadas.
-- **Motivo:** a auditoria é feita nos application services, que não chegam a ser chamados nesses casos.
-- **Impacto:** tentativas de acesso a endpoints administrativos não ficam na trilha de auditoria (BR-032),
-  apenas nos logs de acesso.
-- **Prioridade:** Média.
-- **Possível solução:** ouvir os eventos de autorização do Spring Security e registrá-los pelo
-  `AuditRecorder`.
-
-## TD-003 — Sem limitação de taxa nem proteção contra força bruta
-
-- **Descrição:** não há limite de requisições por cliente nem bloqueio após falhas de autenticação.
-- **Motivo:** normalmente tratado no gateway ou proxy à frente da aplicação, ainda não definido.
-- **Impacto:** exposição a tentativa de senha por repetição e a abuso da API.
-- **Prioridade:** Média; passa a Alta se a aplicação for exposta sem gateway.
-- **Possível solução:** rate limiting no gateway; resolver junto com TD-001.
+- **Descrição:** `403` por papel ou CSRF e falhas de login são auditados; `401` de requisições sem
+  credencial nenhuma não são.
+- **Motivo:** seriam ruído (robôs, sessões expiradas), sem Actor a atribuir.
+- **Impacto:** varreduras anônimas aparecem só nos logs de acesso.
+- **Prioridade:** Baixa.
+- **Possível solução:** métrica de `401` por origem, alertada no monitoramento.
 
 ## TD-004 — History carregado por inteiro a cada operação
 
-- **Descrição:** o aggregate `Workflow` é reconstituído com todo o History, inclusive para executar uma
-  ação.
+- **Descrição:** o aggregate `Workflow` é reconstituído com todo o History, inclusive para executar uma ação.
 - **Motivo:** simplicidade do mapeamento; o History faz parte do aggregate.
 - **Impacto:** o custo de cada operação cresce com o número de mudanças do Workflow. Irrelevante para
   processos de aprovação; perceptível em execuções com milhares de transições.
@@ -77,40 +75,43 @@ limitações do que existe ficam em `docs/product/TECHNICAL_BACKLOG.md`.
 
 - **Descrição:** operações administrativas sobre uma definição carregam a estrutura de todas as versões.
 - **Motivo:** o aggregate protege a invariante de versão ativa única (BR-041).
-- **Impacto:** restrito a operações administrativas, pouco frequentes. A execução de Workflows não é
-  afetada: usa uma consulta direta à versão.
+- **Impacto:** restrito a operações administrativas; a execução de Workflows usa consulta direta à versão.
 - **Prioridade:** Baixa.
 - **Possível solução:** carregar apenas número e status das versões nas operações de ativação.
 
-## TD-006 — Imagem Docker e pipeline de CI ainda não executadas
-
-- **Descrição:** o `Dockerfile`, o `docker-compose.yml` e o workflow do GitHub Actions foram escritos, mas
-  nunca executados: a máquina de desenvolvimento não possui Docker e a pipeline ainda não rodou.
-- **Motivo:** restrição do ambiente em que a fundação técnica foi construída.
-- **Impacto:** podem conter erros só detectáveis na execução. A extração do jar em camadas usada pelo
-  `Dockerfile` e a suíte completa de testes foram verificadas localmente; a integração com Testcontainers
-  não.
-- **Prioridade:** Alta — resolver na primeira execução da pipeline.
-- **Possível solução:** acompanhar a primeira execução da pipeline e corrigir o que falhar.
-
 ## TD-007 — Validação local feita em JDK 27, não no JDK 25 alvo
 
-- **Descrição:** o projeto compila para Java 25 (`--release 25`), mas build e testes locais rodaram sobre
-  um JDK 27.
+- **Descrição:** o projeto compila para Java 25 (`--release 25`), mas o build local roda sobre JDK 27.
 - **Motivo:** único JDK disponível na máquina de desenvolvimento.
-- **Impacto:** baixo; o bytecode gerado é Java 25 e a pipeline usa JDK 25. Bibliotecas de instrumentação
-  emitem avisos em JDKs mais novos.
+- **Impacto:** baixo; a CI usa JDK 25 e passou.
 - **Prioridade:** Baixa.
-- **Possível solução:** a pipeline de CI já cobre o JDK alvo; opcionalmente instalar o JDK 25 localmente.
+- **Possível solução:** instalar o JDK 25 localmente.
 
-## TD-008 — Variáveis do Workflow sem limite de tamanho próprio
+## TD-009 — Limite de falhas de login por IP local à instância
 
-- **Descrição:** as variáveis de um Workflow têm formato e tamanho livres, limitados apenas pelo tamanho
-  máximo de requisição do servidor.
-- **Motivo:** o conteúdo das variáveis depende de cada processo e ainda não há um esquema declarado.
-- **Impacto:** um consumidor pode armazenar documentos grandes em `jsonb`, encarecendo cada operação.
+- **Descrição:** o contador de falhas por IP (`LoginThrottle`) fica em memória.
+- **Motivo:** evita uma dependência nova (Redis) para um controle que, em produção, cabe ao gateway.
+- **Impacto:** com N instâncias, o limite efetivo é N vezes maior. O bloqueio por conta, que fica no banco,
+  não é afetado.
+- **Prioridade:** Média.
+- **Possível solução:** limite no gateway/WAF; ou contador compartilhado no PostgreSQL ou Redis.
+
+## TD-010 — Conflitos de concorrência não são auditados
+
+- **Descrição:** quando duas operações disputam o mesmo Workflow, a perdedora recebe `409` pela violação
+  detectada no commit, fora do caso de uso, e não gera registro de Audit.
+- **Motivo:** a falha ocorre depois da lógica do application service.
+- **Impacto:** a tentativa perdedora não aparece na trilha de auditoria (o History segue correto).
 - **Prioridade:** Baixa.
-- **Possível solução:** limite configurável e esquema de variáveis por definição (TB-012).
+- **Possível solução:** forçar o flush dentro do caso de uso e auditar a exceção, ou auditar no handler.
+
+## TD-011 — Dados dos testes se acumulam
+
+- **Descrição:** testes de integração e end-to-end criam dados com chaves únicas e não os removem.
+- **Motivo:** independência entre testes sem limpeza do banco; com Testcontainers o banco é descartado.
+- **Impacto:** com banco externo (`EWE_TEST_DB_URL`) ou no ambiente local, o volume cresce a cada execução.
+- **Prioridade:** Baixa.
+- **Possível solução:** usar um banco descartável também nesses casos, ou um script de limpeza.
 
 ---
 
@@ -118,4 +119,4 @@ limitações do que existe ficam em `docs/product/TECHNICAL_BACKLOG.md`.
 
 1. Use o próximo identificador `TD-NNN`.
 2. Preencha descrição, motivo, impacto, prioridade e possível solução.
-3. Ao resolver, remova o item e registre a mudança em `docs/releases/CHANGELOG.md`.
+3. Ao resolver, mova o item para a tabela de resolvidos e registre a mudança em `docs/releases/CHANGELOG.md`.
