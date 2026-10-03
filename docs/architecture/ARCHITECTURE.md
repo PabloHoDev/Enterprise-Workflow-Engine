@@ -134,7 +134,8 @@ Ela coordena o domínio.
 
 A camada de interfaces representa os pontos de entrada e saída da aplicação.
 
-Inicialmente, o principal mecanismo de entrada será uma API REST.
+Os mecanismos de entrada são a API REST e o console web, uma SPA servida pela própria aplicação na mesma
+origem da API e que usa apenas a API pública (ADR-008).
 
 Responsabilidades:
 
