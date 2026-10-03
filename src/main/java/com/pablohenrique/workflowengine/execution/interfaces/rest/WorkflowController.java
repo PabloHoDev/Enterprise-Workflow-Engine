@@ -34,6 +34,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -69,6 +70,16 @@ class WorkflowController {
             Pageable pageable) {
         return new PagedModel<>(service.search(new WorkflowSearchCriteria(definitionKey, status), pageable)
                 .map(WorkflowSummaryResponse::from));
+    }
+
+    @GetMapping("/summary")
+    @Operation(summary = "Quantidade de Workflows por status")
+    SummaryResponse summary() {
+        Map<WorkflowStatus, Long> counts = service.countByStatus();
+        return new SummaryResponse(counts.values().stream().mapToLong(Long::longValue).sum(), counts);
+    }
+
+    record SummaryResponse(long total, Map<WorkflowStatus, Long> byStatus) {
     }
 
     @GetMapping("/{id}")
