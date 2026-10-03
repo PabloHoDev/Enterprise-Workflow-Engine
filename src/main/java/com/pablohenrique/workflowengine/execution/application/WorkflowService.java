@@ -8,6 +8,7 @@ import com.pablohenrique.workflowengine.definition.contract.VersionSnapshot;
 import com.pablohenrique.workflowengine.execution.domain.Actor;
 import com.pablohenrique.workflowengine.execution.domain.Workflow;
 import com.pablohenrique.workflowengine.execution.domain.WorkflowException;
+import com.pablohenrique.workflowengine.execution.domain.WorkflowStatus;
 import com.pablohenrique.workflowengine.rules.contract.RuleEvaluator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -96,6 +98,17 @@ public class WorkflowService {
     @Transactional(readOnly = true)
     public Page<WorkflowSummary> search(WorkflowSearchCriteria criteria, Pageable pageable) {
         return repository.search(criteria, pageable);
+    }
+
+    /** Quantidade de Workflows em cada status, incluindo os status sem nenhum Workflow. */
+    @Transactional(readOnly = true)
+    public Map<WorkflowStatus, Long> countByStatus() {
+        Map<WorkflowStatus, Long> counts = new EnumMap<>(WorkflowStatus.class);
+        for (WorkflowStatus status : WorkflowStatus.values()) {
+            counts.put(status, 0L);
+        }
+        counts.putAll(repository.countByStatus());
+        return counts;
     }
 
     private VersionSnapshot definitionOf(Workflow workflow) {
