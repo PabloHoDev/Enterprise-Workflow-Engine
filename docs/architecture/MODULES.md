@@ -43,7 +43,9 @@ Enterprise Workflow Engine
 │
 ├── Rules
 │
-└── Audit
+├── Audit
+│
+└── Identity
 ```
 
 Além dos módulos de negócio, a aplicação possuirá componentes arquiteturais responsáveis por interfaces e infraestrutura.
@@ -342,6 +344,32 @@ Rastreabilidade de operações
 
 ---
 
+# 7A. Identity Module
+
+## 7A.1 Responsabilidade
+
+O módulo **Identity** responde à pergunta:
+
+> **Quem é este Actor e quais papéis ele tem?**
+
+## 7A.2 Responsabilidades Principais
+
+- contas de usuário e seus papéis;
+- credenciais (hash da senha) e política de senha;
+- bloqueio temporário por tentativas de login;
+- gestão das contas pelo administrador e troca da própria senha;
+- encerramento das sessões quando o acesso muda.
+
+Criado pelo ADR-007, a partir do item "Identity and Access Module" previsto em §14.
+
+## 7A.3 Limites
+
+O Identity não decide regras de processo. O papel exigido por uma Transition é verificado pelo módulo
+Workflow Execution, a partir do `Actor(id, roles)` que a camada de interface monta com a autenticação.
+Nenhum módulo de negócio depende do Identity: a ligação acontece pela autenticação do Spring Security.
+
+---
+
 # 8. Comunicação entre Módulos
 
 A comunicação entre módulos deve ocorrer através de contratos explícitos.
@@ -543,7 +571,7 @@ Possíveis evoluções incluem:
 
 * Notification Module;
 * Integration Module;
-* Identity and Access Module;
+* ~~Identity and Access Module~~ (criado: ADR-007);
 * Reporting Module;
 * Task Management Module.
 
