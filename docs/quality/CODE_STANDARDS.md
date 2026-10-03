@@ -135,6 +135,20 @@ Convenções em `docs/quality/TEST_STRATEGY.md`. Em resumo:
 
 ---
 
+# 11A. Console Web (TypeScript/React)
+
+- TypeScript estrito (`strict`, `noUncheckedIndexedAccess`); sem `any`.
+- Componentes de função; estado do servidor com TanStack Query; filtros e paginação na URL.
+- Uma pasta por área em `src/features/`; componentes reutilizáveis em `src/components/`.
+- Chamadas à API apenas por `src/api/` (cliente com CSRF e tratamento de Problem Details).
+- Nenhuma regra de negócio no cliente: ações disponíveis, permissões e validações definitivas vêm da API.
+- Textos da interface em português; mensagens de erro da API traduzidas em `src/lib/format.ts`.
+- Acessibilidade: todo campo com rótulo (`Field`), erros ligados por `aria-describedby`, foco visível,
+  diálogos com `<dialog>` nativo, contraste AA nos dois temas.
+- Sem `dangerouslySetInnerHTML` nem recursos de terceiros (fontes, scripts, imagens).
+
+---
+
 # 12. Verificação
 
 | Regra                               | Como é verificada             |
@@ -142,4 +156,6 @@ Convenções em `docs/quality/TEST_STRATEGY.md`. Em resumo:
 | Limites de módulos e camadas        | `ArchitectureTest` (ArchUnit) |
 | Schema coerente com as entidades    | Hibernate `validate` na inicialização |
 | Cobertura mínima                    | JaCoCo em CI                  |
+| Tipos e estilo do console           | `tsc` estrito e ESLint em CI  |
+| Acessibilidade do console           | axe nos testes end-to-end     |
 | Demais convenções                   | revisão de código             |
