@@ -26,9 +26,24 @@ spring:
   threads:
     virtual:
       enabled: true
+  session:
+    # Sessões do console web no PostgreSQL (tabelas criadas pelo Flyway, V5).
+    timeout: 30m
+    jdbc:
+      initialize-schema: never
+
+workflow-engine:
+  http:
+    max-request-size: 256KB
 
 server:
   shutdown: graceful
+  servlet:
+    session:
+      cookie:
+        name: EWE_SESSION
+        http-only: true
+        same-site: lax
 
 management:
   endpoints:

@@ -1,10 +1,12 @@
-# Usuários dos testes de integração. O datasource é registrado por TestDatabase.
+# Contas dos testes de integração. O datasource é registrado por TestDatabase.
+# Senhas {noop} evitam o custo do BCrypt a cada requisição dos testes; nunca use fora deles.
 workflow-engine:
-  security:
-    users:
+  identity:
+    seed-users:
       - username: admin
+        display-name: Test Admin
         password: "{noop}admin-secret"
-        roles: [ADMIN]
+        roles: [ADMIN, USER]
       - username: manager
         password: "{noop}manager-secret"
         roles: [USER, MANAGER]

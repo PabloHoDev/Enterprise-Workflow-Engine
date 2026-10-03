@@ -1,7 +1,6 @@
 package com.pablohenrique.workflowengine.support;
 
 import com.jayway.jsonpath.JsonPath;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -27,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@ExtendWith(TestDatabase.class)
 public abstract class AbstractIntegrationTest {
 
     protected static final String DEFINITIONS = "/api/v1/workflow-definitions";

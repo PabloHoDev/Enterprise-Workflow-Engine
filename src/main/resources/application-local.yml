@@ -1,4 +1,5 @@
-# Desenvolvimento individual. Aponta para o PostgreSQL do docker-compose.yml.
+# Desenvolvimento individual. Com ./mvnw spring-boot:test-run, a URL abaixo é substituída pelo PostgreSQL
+# embutido; com ./mvnw spring-boot:run, aponta para o PostgreSQL do docker-compose.yml (ou DB_URL).
 # As credenciais abaixo existem apenas para uso local e nunca devem ser usadas em outro ambiente.
 spring:
   datasource:
@@ -7,19 +8,24 @@ spring:
     password: ${DB_PASSWORD:workflow}
 
 workflow-engine:
-  security:
-    users:
+  identity:
+    # Contas de demonstração, criadas na primeira inicialização (as senhas são gravadas em BCrypt).
+    seed-users:
       - username: admin
-        password: "{noop}admin"
-        roles: [ADMIN]
+        display-name: Ana Administradora
+        password: workflow-demo-2026
+        roles: [ADMIN, USER]
       - username: manager
-        password: "{noop}manager"
+        display-name: Marcos Gestor
+        password: workflow-demo-2026
         roles: [USER, MANAGER]
       - username: finance
-        password: "{noop}finance"
+        display-name: Fernanda Financeiro
+        password: workflow-demo-2026
         roles: [USER, FINANCE]
       - username: user
-        password: "{noop}user"
+        display-name: Lucas Solicitante
+        password: workflow-demo-2026
         roles: [USER]
 
 logging:

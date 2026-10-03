@@ -1,6 +1,14 @@
-# Produção. Banco e usuários vêm exclusivamente do ambiente:
+# Produção. Banco e primeiro administrador vêm exclusivamente do ambiente:
 #   DB_URL, DB_USERNAME, DB_PASSWORD
-#   WORKFLOW_ENGINE_SECURITY_USERS_0_USERNAME, ..._0_PASSWORD ({bcrypt}...), ..._0_ROLES
+#   WORKFLOW_ENGINE_IDENTITY_SEED_USERS_0_USERNAME, ..._0_PASSWORD, ..._0_ROLES (ex.: ADMIN,USER)
+# Demais contas são criadas pelo console web ou por /api/v1/users.
+server:
+  servlet:
+    session:
+      cookie:
+        # A aplicação roda atrás de TLS: o cookie de sessão nunca trafega em texto claro.
+        secure: true
+
 logging:
   structured:
     format:

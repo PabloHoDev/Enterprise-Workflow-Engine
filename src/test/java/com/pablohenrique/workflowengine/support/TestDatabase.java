@@ -1,41 +1,32 @@
 package com.pablohenrique.workflowengine.support;
 
-import org.junit.jupiter.api.extension.ConditionEvaluationResult;
-import org.junit.jupiter.api.extension.ExecutionCondition;
-import org.junit.jupiter.api.extension.ExtensionContext;
+import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
- * PostgreSQL dos testes de integração. Por padrão sobe um container (Testcontainers), compartilhado por
- * toda a suíte. Sem Docker, pode-se apontar para um banco existente e descartável:
+ * PostgreSQL dos testes de integração, compartilhado por toda a suíte. A origem é escolhida nesta ordem:
  *
- * <pre>
- * EWE_TEST_DB_URL=jdbc:postgresql://localhost:5432/workflow_engine_test
- * EWE_TEST_DB_USERNAME=...
- * EWE_TEST_DB_PASSWORD=...
- * </pre>
+ * <ol>
+ *   <li>banco existente e descartável, se {@code EWE_TEST_DB_URL} estiver definida
+ *       (com {@code EWE_TEST_DB_USERNAME} e {@code EWE_TEST_DB_PASSWORD});</li>
+ *   <li>container (Testcontainers), se houver Docker, como no CI;</li>
+ *   <li>PostgreSQL embutido ({@link EmbeddedDatabase}), sem Docker ou com {@code EWE_TEST_DB=embedded}.</li>
+ * </ol>
  *
- * Sem nenhuma das duas opções, os testes de integração são ignorados (e não falham).
+ * Os testes de integração rodam sempre; nenhuma das opções exige instalação manual.
  */
-public final class TestDatabase implements ExecutionCondition {
+final class TestDatabase {
 
     private static final String EXTERNAL_URL = System.getenv("EWE_TEST_DB_URL");
+    private static final boolean FORCE_EMBEDDED = "embedded".equalsIgnoreCase(System.getenv("EWE_TEST_DB"));
     private static final String IMAGE = "postgres:18-alpine";
 
     private static PostgreSQLContainer container;
+    private static EmbeddedPostgres embedded;
 
-    @Override
-    public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
-        if (EXTERNAL_URL != null) {
-            return ConditionEvaluationResult.enabled("Using external database from EWE_TEST_DB_URL");
-        }
-        if (DockerClientFactory.instance().isDockerAvailable()) {
-            return ConditionEvaluationResult.enabled("Docker is available");
-        }
-        return ConditionEvaluationResult.disabled(
-                "Integration tests need Docker or an external PostgreSQL (EWE_TEST_DB_URL)");
+    private TestDatabase() {
     }
 
     static synchronized void register(DynamicPropertyRegistry registry) {
@@ -45,12 +36,22 @@ public final class TestDatabase implements ExecutionCondition {
             registry.add("spring.datasource.password", () -> System.getenv("EWE_TEST_DB_PASSWORD"));
             return;
         }
-        if (container == null) {
-            container = new PostgreSQLContainer(IMAGE);
-            container.start();
+        if (container == null && embedded == null) {
+            if (!FORCE_EMBEDDED && DockerClientFactory.instance().isDockerAvailable()) {
+                container = new PostgreSQLContainer(IMAGE);
+                container.start();
+            } else {
+                embedded = EmbeddedDatabase.startEphemeral();
+            }
         }
-        registry.add("spring.datasource.url", container::getJdbcUrl);
-        registry.add("spring.datasource.username", container::getUsername);
-        registry.add("spring.datasource.password", container::getPassword);
+        if (container != null) {
+            registry.add("spring.datasource.url", container::getJdbcUrl);
+            registry.add("spring.datasource.username", container::getUsername);
+            registry.add("spring.datasource.password", container::getPassword);
+        } else {
+            registry.add("spring.datasource.url", () -> embedded.getJdbcUrl("postgres", "postgres"));
+            registry.add("spring.datasource.username", () -> "postgres");
+            registry.add("spring.datasource.password", () -> "");
+        }
     }
 }

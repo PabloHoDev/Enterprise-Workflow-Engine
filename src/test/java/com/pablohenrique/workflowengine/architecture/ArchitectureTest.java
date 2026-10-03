@@ -75,7 +75,7 @@ class ArchitectureTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"definition", "execution", "rules", "audit"})
+    @ValueSource(strings = {"definition", "execution", "rules", "audit", "identity"})
     void modulesAreOnlyAccessedThroughTheirContracts(String module) {
         String modulePackage = BASE + "." + module + "..";
         String contractPackage = BASE + "." + module + ".contract..";
