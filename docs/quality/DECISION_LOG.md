@@ -41,6 +41,14 @@ Decisões estruturais ficam em `docs/adr/`; o resumo das decisões em vigor, em
 | DL-018 | 2026-10-02 | ArchUnit usado como biblioteca em testes JUnit comuns, sem o engine `archunit-junit5`         | Evita depender da compatibilidade do engine com a versão do JUnit Platform. |
 | DL-019 | 2026-10-02 | springdoc desabilitado no perfil `prod`                                                       | A documentação da API não deve ficar exposta publicamente por padrão. |
 | DL-020 | 2026-10-02 | Colunas `ordinal`, `state_type`, `rule_operator`, `sequence_number`, `comment_text`           | Evitam palavras-chave do SQL (`position`, `type`, `operator`, `sequence`, `comment`) como nomes de coluna. |
+| DL-021 | 2026-10-03 | Limite de login por origem conta apenas falhas                                                 | Contar sucessos penalizaria escritórios inteiros atrás do mesmo IP; detectado nos testes end-to-end. |
+| DL-022 | 2026-10-03 | Falha de login sempre com a mesma mensagem, inclusive para conta bloqueada ou desativada       | Não revela quais contas existem nem seu estado; a auditoria guarda o motivo real. |
+| DL-023 | 2026-10-03 | `401` sem `WWW-Authenticate` quando a chamada vem do console (`X-Requested-With`)              | O desafio Basic faria o navegador abrir o próprio diálogo de login. |
+| DL-024 | 2026-10-03 | Cookie CSRF `SameSite=Strict`, cookie de sessão `SameSite=Lax`                                 | O token CSRF nunca precisa sair da origem; a sessão sobrevive a links vindos de outros sites. |
+| DL-025 | 2026-10-03 | Contas iniciais com senha `{noop}` só nos testes                                               | Evita o custo do BCrypt a cada requisição dos testes de integração. |
+| DL-026 | 2026-10-03 | Usuário do console guardado em estado do React, não no cache do TanStack Query                 | O cache notifica de forma assíncrona: após o logout, a tela de login ainda via o usuário anterior e voltava ao painel. Detectado nos testes end-to-end. |
+| DL-027 | 2026-10-03 | Itens de grid com `grid-cols-1` (colunas `minmax(0, 1fr)`)                                     | Conteúdo largo (diagrama) alargava a coluna e estourava a tela no celular. |
+| DL-028 | 2026-10-03 | Componentes de interface próprios sobre Tailwind, sem biblioteca de componentes                | Poucos componentes cobrem as telas; evita peso e estilo genérico (ADR-008 §3.4). |
 
 ---
 
