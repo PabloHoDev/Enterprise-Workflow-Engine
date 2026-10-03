@@ -380,6 +380,33 @@ Uma Rule avaliada sobre uma variável inexistente não é satisfeita.
 
 ---
 
+## BR-046 — Administração garantida
+
+O sistema mantém sempre ao menos uma conta de administrador ativa. Um administrador não pode desativar a
+própria conta nem remover o próprio papel de administrador.
+
+---
+
+## BR-047 — Bloqueio por tentativas
+
+Após 5 senhas erradas consecutivas, a conta fica bloqueada por 15 minutos ou até um administrador
+desbloqueá-la. Um login bem-sucedido zera a contagem.
+
+---
+
+## BR-048 — Mudança de acesso é imediata
+
+Alterar papéis, desativar a conta, redefinir ou trocar a senha encerra todas as sessões abertas da conta.
+
+---
+
+## BR-049 — Política de senha
+
+Senhas têm entre 12 e 128 caracteres, não repetem trivialmente poucos caracteres e não contêm o nome de
+usuário.
+
+---
+
 # 15. Invariantes do Domínio
 
 As seguintes condições devem permanecer verdadeiras durante toda a vida de um Workflow:
