@@ -5,6 +5,7 @@ import com.pablohenrique.workflowengine.execution.application.WorkflowSearchCrit
 import com.pablohenrique.workflowengine.execution.application.WorkflowSummary;
 import com.pablohenrique.workflowengine.execution.domain.HistoryEntry;
 import com.pablohenrique.workflowengine.execution.domain.Workflow;
+import com.pablohenrique.workflowengine.execution.domain.WorkflowStatus;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,7 +14,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -67,6 +70,15 @@ class JpaWorkflowRepository implements WorkflowRepository {
         return workflows.findAll(specification, pageable).map(entity -> new WorkflowSummary(entity.getId(),
                 entity.getDefinitionKey(), entity.getDefinitionVersionNumber(), entity.getStatus(),
                 entity.getCurrentState(), entity.getCreatedAt(), entity.getUpdatedAt()));
+    }
+
+    @Override
+    public Map<WorkflowStatus, Long> countByStatus() {
+        Map<WorkflowStatus, Long> counts = new EnumMap<>(WorkflowStatus.class);
+        for (Object[] row : workflows.countByStatus()) {
+            counts.put((WorkflowStatus) row[0], (Long) row[1]);
+        }
+        return counts;
     }
 
     private WorkflowHistoryEntity toEntity(HistoryEntry entry) {
