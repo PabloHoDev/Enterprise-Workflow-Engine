@@ -22,7 +22,7 @@
     "lucide-react": "^1.51.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "react-router": "^8.4.0"
+    "react-router": "^8.5.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
