@@ -28,7 +28,7 @@
 
         <springdoc.version>3.1.1</springdoc.version>
         <archunit.version>1.5.1</archunit.version>
-        <jacoco.version>0.8.15</jacoco.version>
+        <jacoco.version>0.8.16</jacoco.version>
         <embedded-postgres.version>2.2.2</embedded-postgres.version>
         <!-- Mesma versão maior do postgres:18-alpine usado no CI e no docker-compose.yml -->
         <embedded-postgres-binaries.version>18.6.0</embedded-postgres-binaries.version>
